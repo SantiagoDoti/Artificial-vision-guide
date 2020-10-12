@@ -1,4 +1,8 @@
 import cv2, time, numpy as np
+import os.path
+
+rootPath = os.path.abspath(os.path.dirname(__file__))
+videoPath = os.path.join(rootPath, "../tests/testWhiteRight.mp4")
 
 # Colores blancos para filtrar
 low_white = np.array([5,5,160])
@@ -26,7 +30,7 @@ def processImage(img):
     return finalImage
 
 # Video pregrabado
-video = cv2.VideoCapture("./Artificial-vision-guide/tests/testWhiteRight.mp4")
+video = cv2.VideoCapture(videoPath)
 
 pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
 while True:

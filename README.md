@@ -8,7 +8,7 @@ Proyecto de Práctica Profesional Supervisada (PPS) de Santiago Doti.
 
 # Setup
 
-** El archivo "robotBrain.py" es el programa en si y el "videoTest.py" es el mismo código pero en vez de usar la webcam utiliza un video pregrabado, está especialmente diseñado para realizar pruebas **
+**El archivo "robotBrain.py" es el programa en si y el "videoTest.py" es el mismo código pero en vez de usar la webcam utiliza un video pregrabado, está especialmente diseñado para realizar pruebas**
 
 **1) Instalando prerequisitos**
 
