@@ -25,7 +25,7 @@ def processImage(img):
     finalImage = cv2.Canny(mask,75,150)
     return finalImage
 
-
+# Video en directo de la webcam
 video = cv2.VideoCapture(0)
 
 while True:
@@ -34,8 +34,8 @@ while True:
 
     processedImage = processImage(frame)
         
-    # Vertices de un trapecio
-    verticesRegionInterest = [np.array([[0,480],[0,300],[220,200],[420,200],[640,300],[640,480]],dtype=np.int32)]
+    # Vertices de un trapecio (region que nos interesa)
+    verticesRegionInterest = [np.array([[0,480],[0,300],[220,300],[420,300],[640,300],[640,480]],dtype=np.int32)]
     croppedImage = interestRegion(processedImage,verticesRegionInterest)
     drawLines(croppedImage)
 
