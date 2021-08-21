@@ -13,7 +13,7 @@ low_yellow = np.array([18, 94, 140])
 up_yellow = np.array([48, 255, 255])
 
 
-def regionOfInterest(img):
+def region_of_interest(img):
     height = frame.shape[0]
     width = frame.shape[1]
     triangle = [np.array([(150, height), (850, height), (450, 320)])]
@@ -23,18 +23,20 @@ def regionOfInterest(img):
     return cv2.bitwise_and(img, mask)
 
 
-def drawLines(img):
-    lines = cv2.HoughLinesP(img, rho=1, theta=np.pi/180, threshold=50, minLineLength=70, maxLineGap=20)
+def draw_lines(img, lines):
+    # Creamos otra imagen totalmente negra del mismo tamaño que la original para dibujar las lineas sobre ella
+    lines_image = np.zeros_like(img)
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
+            cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
+    return lines_image
 
 
-def processImage(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    img = cv2.GaussianBlur(img, (5, 5), 0)
-    mask = cv2.inRange(img, low_white, up_white)
+def process_image(image):
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    gaussian_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
+    mask = cv2.inRange(gaussian_image, low_white, up_white)
     return cv2.Canny(mask, 75, 150)
 
 
@@ -51,13 +53,22 @@ while True:
         video = cv2.VideoCapture(videoPath)
         continue
 
-    processedImage = processImage(frame)
+    # Aplicamos varios filtros a la imagen y luego detectamos los bordes
+    processedImage = process_image(frame)
 
-    croppedImage = regionOfInterest(processedImage)
-    drawLines(croppedImage)
+    # Recortamos la imagen (ROI) para reducir el ruido y los falsos positivos
+    cropped_image = region_of_interest(processedImage)
 
-    cv2.imshow("Video pregrabado", frame)
-    cv2.imshow("Cropped image", croppedImage)
+    # Creamos las lineas sobre la imagen negra cortada
+    lines = cv2.HoughLinesP(cropped_image, rho=2, theta=np.pi/180, threshold=100, lines=np.array([]), minLineLength=20, maxLineGap=40)
+    lines_image = draw_lines(frame, lines)
+
+    # Combinamos la imagen negra con las lineas dibujadas contra la del video para obtener la imagen final
+    final_image = cv2.addWeighted(frame, 0.8, lines_image, 1, 1)
+
+    # cv2.imshow("Video original", frame)
+    cv2.imshow("Resultado", final_image)
+    cv2.imshow("Edges image (cropped)", cropped_image)
     pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
     # print(str(pos_frame) + " frames y " + str(video.get(cv2.CAP_PROP_POS_MSEC)/1000) + " segundos")
 
