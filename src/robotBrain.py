@@ -58,13 +58,15 @@ def setup_motors():
     GPIO.output(IN2, GPIO.LOW)
     GPIO.output(IN3, GPIO.LOW)
     GPIO.output(IN4, GPIO.LOW)
+    print("Setup motors - Preparando los motores")
 
 
-def go_reverse():
+def go_backward():
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
     GPIO.output(IN2, GPIO.HIGH)
+    print("Backward - Marcha atras")
 
 
 def go_forward():
@@ -72,6 +74,23 @@ def go_forward():
     GPIO.output(IN2, GPIO.LOW)
     GPIO.output(IN3, GPIO.HIGH)
     GPIO.output(IN4, GPIO.LOW)
+    print("Forward - Hacia delante")
+
+
+def go_left():
+    GPIO.output(IN1, GPIO.LOW)
+    GPIO.output(IN2, GPIO.LOW)
+    GPIO.output(IN3, GPIO.HIGH)
+    GPIO.output(IN4, GPIO.HIGH)
+    print("Left - Hacia la izquierda")
+
+
+def go_right():
+    GPIO.output(IN1, GPIO.HIGH)
+    GPIO.output(IN2, GPIO.HIGH)
+    GPIO.output(IN3, GPIO.LOW)
+    GPIO.output(IN4, GPIO.LOW)
+    print("Right - Hacia la derecha")
 
 
 def stop():
@@ -79,6 +98,7 @@ def stop():
     GPIO.output(IN2, GPIO.LOW)
     GPIO.output(IN3, GPIO.LOW)
     GPIO.output(IN4, GPIO.LOW)
+    print("Stop - Frenando")
 
 
 """ ********************** """
@@ -89,20 +109,24 @@ def stop():
 video = cv2.VideoCapture(0)
 
 while True:
-    check, frame = video.read()
+    # check, frame = video.read()
+    #
+    # processedImage = process_image(frame)
+    #
+    # croppedImage = region_of_interest(processedImage)
+    #
+    # # lines = cv2.HoughLinesP(img, rho=1, theta=np.pi / 180, threshold=50, minLineLength=100, maxLineGap=50)
+    # lines = cv2.HoughLinesP(croppedImage, rho=2, theta=np.pi/180, threshold=100, lines=np.array([]), minLineLength=20, maxLineGap=40)
+    # linesImage = draw_lines(frame, lines)
+    #
+    # finalImage = cv2.addWeighted(frame, 0.8, linesImage, 1, 1)
+    #
+    # cv2.imshow("Resultado", finalImage)
+    # cv2.imshow("Edges image (cropped)", croppedImage)
 
-    processedImage = process_image(frame)
-
-    croppedImage = region_of_interest(processedImage)
-
-    # lines = cv2.HoughLinesP(img, rho=1, theta=np.pi / 180, threshold=50, minLineLength=100, maxLineGap=50)
-    lines = cv2.HoughLinesP(croppedImage, rho=2, theta=np.pi/180, threshold=100, lines=np.array([]), minLineLength=20, maxLineGap=40)
-    linesImage = draw_lines(frame, lines)
-
-    finalImage = cv2.addWeighted(frame, 0.8, linesImage, 1, 1)
-
-    cv2.imshow("Resultado", finalImage)
-    cv2.imshow("Edges image (cropped)", croppedImage)
+    setup_motors()
+    go_left()
+    stop()
 
     if cv2.waitKey(1) == 27:
         break
