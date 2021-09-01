@@ -36,6 +36,12 @@ def stop(text):
 video = cv2.VideoCapture(videoPath)
 pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
 
+initialTrackbarVals = [345, 346, 80, 519]
+Utils.initializeTrackbars(initialTrackbarVals)
+
+initialTrackbarVals2 = [2, 50, 40, 60]
+Utils.initializeTrackbars2(initialTrackbarVals2)
+
 while True:
     flag, frame = video.read()
 
@@ -44,12 +50,21 @@ while True:
         video = cv2.VideoCapture(videoPath)
         continue
 
+    imgCopy = frame.copy()
+
     Utils.print_base_text(frame)
 
-    final_image = ImageProcessor.setup_image(frame)
+    final_image = ImageProcessor.setup_image(frame, Utils.valTrackbars2())
+
+    height, width = frame.shape[0], frame.shape[1]
+    points = Utils.valTrackbars()
+    warped_image = ImageProcessor.warp_image(frame, points, width, height)
+    points_warped_image = Utils.draw_circles(imgCopy, points)
 
     # cv2.imshow("Video original", frame)
     cv2.imshow("Resultado", final_image)
+    cv2.imshow("Warped image", warped_image)
+    cv2.imshow("Warp points", points_warped_image)
     # cv2.imshow("Edges image (cropped)", cropped_image)
     pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
     # print(str(pos_frame) + " frames y " + str(video.get(cv2.CAP_PROP_POS_MSEC)/1000) + " segundos")
