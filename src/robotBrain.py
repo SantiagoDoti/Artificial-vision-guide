@@ -12,10 +12,11 @@ while True:
 
     Utils.print_base_text(frame)
 
-    final_image = ImageProcessor.setup_image(frame, None)
+    lane_detection_image = ImageProcessor.setup_lane_detection_image(frame, None)
+    # cropped_image = ImageProcessor.setup_edges_image(frame)
 
-    cv2.imshow("Resultado", final_image)
-    # cv2.imshow("Edges image (cropped)", croppedImage)
+    cv2.imshow("Lane detection image", lane_detection_image)
+    # cv2.imshow("Edges image (cropped)", cropped_image)
 
     # MotorHandler.go_left(0.5)
     # time.sleep(3)

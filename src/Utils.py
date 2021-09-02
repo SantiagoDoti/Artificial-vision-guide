@@ -4,8 +4,10 @@ import numpy as np
 robot_direction_text = "detenido"
 robot_speed = 0
 wT, hT = 960, 540
+# wT, hT = 1280, 720
 
 
+# Dibujamos sobre la imagen información importante sobre el rumbo actual del robot y la velocidad
 def print_base_text(imagen):
     cv2.rectangle(imagen, (10, 10), (310, 100), (0, 0, 255), 4)
     cv2.putText(imagen, "Rumbo: ", (18, 50), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
@@ -26,42 +28,42 @@ def nothing(a):
     pass
 
 
-def initializeTrackbars(intialTracbarVals):
+def initializeTrackbars(initial_tracbar_vals):
     cv2.namedWindow("Trackbars")
     cv2.resizeWindow("Trackbars", 360, 240)
 
-    cv2.createTrackbar("Width Top", "Trackbars", intialTracbarVals[0], wT // 2, nothing)
-    cv2.createTrackbar("Height Top", "Trackbars", intialTracbarVals[1], hT, nothing)
-    cv2.createTrackbar("Width Bottom", "Trackbars", intialTracbarVals[2], wT // 2, nothing)
-    cv2.createTrackbar("Height Bottom", "Trackbars", intialTracbarVals[3], hT, nothing)
+    cv2.createTrackbar("Width Top", "Trackbars", initial_tracbar_vals[0], wT // 2, nothing)
+    cv2.createTrackbar("Height Top", "Trackbars", initial_tracbar_vals[1], hT, nothing)
+    cv2.createTrackbar("Width Bottom", "Trackbars", initial_tracbar_vals[2], wT // 2, nothing)
+    cv2.createTrackbar("Height Bottom", "Trackbars", initial_tracbar_vals[3], hT, nothing)
 
 
 def valTrackbars():
-    widthTop = cv2.getTrackbarPos("Width Top", "Trackbars")
-    heightTop = cv2.getTrackbarPos("Height Top", "Trackbars")
-    widthBottom = cv2.getTrackbarPos("Width Bottom", "Trackbars")
-    heightBottom = cv2.getTrackbarPos("Height Bottom", "Trackbars")
-    points = np.float32([(widthTop, heightTop), (wT-widthTop, heightTop),
-                         (widthBottom, heightBottom), (wT-widthBottom, heightBottom)])
+    width_top = cv2.getTrackbarPos("Width Top", "Trackbars")
+    height_top = cv2.getTrackbarPos("Height Top", "Trackbars")
+    width_bottom = cv2.getTrackbarPos("Width Bottom", "Trackbars")
+    height_bottom = cv2.getTrackbarPos("Height Bottom", "Trackbars")
+    points = np.float32([(width_top, height_top), (wT-width_top, height_top),
+                         (width_bottom, height_bottom), (wT-width_bottom, height_bottom)])
     return points
 
 
-def initializeTrackbars2(intialTracbarVals):
+def initializeTrackbars2(initial_tracbar_vals):
     cv2.namedWindow("Trackbars")
     cv2.resizeWindow("Trackbars", 360, 240)
 
-    cv2.createTrackbar("Rho", "Trackbars", intialTracbarVals[0], wT // 2, nothing)
-    cv2.createTrackbar("Threshold", "Trackbars", intialTracbarVals[1], hT, nothing)
-    cv2.createTrackbar("minLineLength", "Trackbars", intialTracbarVals[2], wT // 2, nothing)
-    cv2.createTrackbar("maxLineGap", "Trackbars", intialTracbarVals[3], hT, nothing)
+    cv2.createTrackbar("Rho", "Trackbars", initial_tracbar_vals[0], wT // 2, nothing)
+    cv2.createTrackbar("Threshold", "Trackbars", initial_tracbar_vals[1], hT, nothing)
+    cv2.createTrackbar("minLineLength", "Trackbars", initial_tracbar_vals[2], wT // 2, nothing)
+    cv2.createTrackbar("maxLineGap", "Trackbars", initial_tracbar_vals[3], hT, nothing)
 
 
 def valTrackbars2():
     rho = cv2.getTrackbarPos("Rho", "Trackbars")
     threshold = cv2.getTrackbarPos("Threshold", "Trackbars")
-    minLineLenght = cv2.getTrackbarPos("minLineLength", "Trackbars")
-    maxLineGap = cv2.getTrackbarPos("maxLineGap", "Trackbars")
-    info = np.float32([rho, threshold, minLineLenght, maxLineGap])
+    min_line_lenght = cv2.getTrackbarPos("minLineLength", "Trackbars")
+    max_line_gap = cv2.getTrackbarPos("maxLineGap", "Trackbars")
+    info = np.float32([rho, threshold, min_line_lenght, max_line_gap])
     return info
 
 

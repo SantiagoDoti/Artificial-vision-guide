@@ -39,7 +39,7 @@ pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
 initialTrackbarVals = [345, 346, 80, 519]
 Utils.initializeTrackbars(initialTrackbarVals)
 
-initialTrackbarVals2 = [2, 50, 40, 60]
+initialTrackbarVals2 = [1, 50, 40, 60]
 Utils.initializeTrackbars2(initialTrackbarVals2)
 
 while True:
@@ -50,23 +50,19 @@ while True:
         video = cv2.VideoCapture(videoPath)
         continue
 
-    imgCopy = frame.copy()
-
     Utils.print_base_text(frame)
 
-    final_image = ImageProcessor.setup_image(frame, Utils.valTrackbars2())
+    edges_cropped_image = ImageProcessor.setup_edges_image(frame)
+    lane_detection_image = ImageProcessor.setup_lane_detection_image(frame, Utils.valTrackbars2())
+    # warped_image = ImageProcessor.setup_warped_image(frame)
+    # warped_points_image = ImageProcessor.setup_warped_points_image(frame)
 
-    height, width = frame.shape[0], frame.shape[1]
-    points = Utils.valTrackbars()
-    warped_image = ImageProcessor.warp_image(frame, points, width, height)
-    points_warped_image = Utils.draw_circles(imgCopy, points)
+    cv2.imshow("Lane detection", lane_detection_image)
+    cv2.imshow("Edges image", edges_cropped_image)
+    # cv2.imshow("Warped image", warped_image)
+    # cv2.imshow("Warp points", warped_points_image)
 
-    # cv2.imshow("Video original", frame)
-    cv2.imshow("Resultado", final_image)
-    cv2.imshow("Warped image", warped_image)
-    cv2.imshow("Warp points", points_warped_image)
-    # cv2.imshow("Edges image (cropped)", cropped_image)
-    pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
+    # pos_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
     # print(str(pos_frame) + " frames y " + str(video.get(cv2.CAP_PROP_POS_MSEC)/1000) + " segundos")
 
     if cv2.waitKey(10) == 27:
