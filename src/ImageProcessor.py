@@ -84,7 +84,7 @@ def draw_heading_line(img, steering_angle):
 def compute_steering_angle(frame, lane_lines):
     if len(lane_lines) == 0:
         print("No hay lineas detectadas, no se hace nada")
-        return -90
+        return 0
 
     height, widht = frame.shape[0], frame.shape[1]
     if len(lane_lines) == 1:
@@ -122,8 +122,17 @@ def stabilize_steering_angle(current_steering_angle, new_steering_angle, amount_
     else:
         stabilize_steering_angle = new_steering_angle
 
-    print("Ángulo propuesto: %s. Ángulo estabilizado: %s" % (new_steering_angle, stabilize_steering_angle))
+    # print("Ángulo propuesto: %s. Ángulo estabilizado: %s" % (new_steering_angle, stabilize_steering_angle))
     return stabilize_steering_angle
+
+
+def drive(steering_angle):
+    if 45 < steering_angle < 90:
+        Utils.go_left(0.5)
+    elif steering_angle == 90:
+        Utils.go_straigth(0.5)
+    elif 90 < steering_angle < 136:
+        Utils.go_right(0.5)
 
 
 # def process_image(img):
@@ -157,12 +166,12 @@ def setup_edges_image(frame):
     return cropped_image
 
 
-def setup_lane_detection_image(frame, houghInfo):
+def setup_lane_detection_image(frame, hough_parameters):
     cropped_image = setup_edges_image(frame)
 
     # Creamos las lineas sobre la imagen negra cortada
-    lines = cv2.HoughLinesP(cropped_image, rho=houghInfo[0], theta=np.pi / 180, threshold=int(houghInfo[1]),
-                            lines=np.array([]), minLineLength=houghInfo[2], maxLineGap=houghInfo[3])
+    lines = cv2.HoughLinesP(cropped_image, rho=hough_parameters[0], theta=np.pi / 180, threshold=int(hough_parameters[1]),
+                            lines=np.array([]), minLineLength=hough_parameters[2], maxLineGap=hough_parameters[3])
 
     # Hacemos un promedio entre las lineas para dibujar UNA sola si hay varias cercanas
     averaged_lines = average_slope_intercept(frame, lines)
@@ -175,10 +184,12 @@ def setup_lane_detection_image(frame, houghInfo):
     if averaged_lines is not None and len(averaged_lines) != 0:
         new_steering_angle = compute_steering_angle(frame, averaged_lines)
         steering_angle = stabilize_steering_angle(90, new_steering_angle, len(averaged_lines))
+        drive(steering_angle)
         final_image = draw_heading_line(lines_lane_image, steering_angle)
-        return final_image
     else:
-        return lines_lane_image
+        final_image = lines_lane_image
+
+    return final_image
 
 
 def setup_warped_image(frame):

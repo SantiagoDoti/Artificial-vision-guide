@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+robot_direction = 3     # recto (straigth)
 robot_direction_text = "detenido"
 robot_speed = 0
 wT, hT = 960, 540
@@ -16,8 +17,25 @@ def print_base_text(imagen):
     cv2.putText(imagen, str(robot_speed), (190, 80), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
 
-def set_robot_direction_text(text):
-    text = robot_direction_text
+def print_direction_arrow(image):
+    width, height = image.shape[0], image.shape[1]
+    if robot_direction == 0:
+        pass
+    if robot_direction == 1:  # izquierda (left)
+        pt1 = (width / 2 - 10, height / 4)
+        pt2 = (width / 2 - 30, height / 4)
+    elif robot_direction == 2:    # derecha (right)
+        pt1 = (width / 2 + 10, height / 4)
+        pt2 = (width / 2 + 30, height / 4)
+    else:   # recto (straigth)
+        pt1 = (width / 2, height / 4)
+        pt2 = (width / 2, height / 4 + 30)
+    cv2.arrowedLine(image, (pt1[0], pt1[1]), (pt2[0], pt2[1]), (0, 0, 255))
+
+
+def set_robot_direction(direction, text_direction):
+    direction = robot_direction
+    text_direction = robot_direction_text
 
 
 def set_robot_speed(speed):
@@ -73,4 +91,26 @@ def draw_circles(img, points):
     return img
 
 
+# TEMPORAL
+def stop():
+    set_robot_speed(0)
+    set_robot_direction("detenido", 0)
+    print("Stop - Frenando")
 
+
+def go_left(speed):
+    set_robot_speed(speed)
+    set_robot_direction("izquierda", 1)
+    print("Left - Hacia la izquierda")
+
+
+def go_right(speed):
+    set_robot_speed(speed)
+    set_robot_direction("derecha", 2)
+    print("Right - Hacia la derecha")
+
+
+def go_straigth(speed):
+    set_robot_speed(speed)
+    set_robot_direction("recto", 3)
+    print("Forward - Hacia delante")
