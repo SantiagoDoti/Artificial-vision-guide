@@ -26,16 +26,13 @@ while True:
         video = cv2.VideoCapture(videoPath)
         continue
 
-    Utils.print_base_text(frame)
-    # Utils.print_direction_arrow(frame)
-
-    # edges_cropped_image = ImageProcessor.setup_edges_image(frame)
+    edges_cropped_image = ImageProcessor.setup_edges_image(frame)
     lane_detection_image = ImageProcessor.setup_lane_detection_image(frame, Utils.valTrackbars2())
     # warped_image = ImageProcessor.setup_warped_image(frame)
     # warped_points_image = ImageProcessor.setup_warped_points_image(frame)
 
     cv2.imshow("Lane detection", lane_detection_image)
-    # cv2.imshow("Edges image", edges_cropped_image)
+    cv2.imshow("Edges image", edges_cropped_image)
     # cv2.imshow("Warped image", warped_image)
     # cv2.imshow("Warp points", warped_points_image)
 

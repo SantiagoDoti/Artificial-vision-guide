@@ -10,7 +10,7 @@ video = cv2.VideoCapture(0)
 while True:
     check, frame = video.read()
 
-    Utils.print_base_text(frame)
+    Utils.print_info_text(frame)
 
     lane_detection_image = ImageProcessor.setup_lane_detection_image(frame, None)
     # cropped_image = ImageProcessor.setup_edges_image(frame)

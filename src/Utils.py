@@ -9,37 +9,33 @@ wT, hT = 960, 540
 
 
 # Dibujamos sobre la imagen información importante sobre el rumbo actual del robot y la velocidad
-def print_base_text(imagen):
-    cv2.rectangle(imagen, (10, 10), (310, 100), (0, 0, 255), 4)
-    cv2.putText(imagen, "Rumbo: ", (18, 50), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    cv2.putText(imagen, robot_direction_text, (150, 50), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(imagen, "Velocidad: ", (18, 80), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    cv2.putText(imagen, str(robot_speed), (190, 80), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
+def print_info_text(image, direction_option, speed):
+    cv2.rectangle(image, (10, 10), (310, 100), (0, 0, 255), 4)
+    cv2.putText(image, "Rumbo: ", (18, 50), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
+    directions = np.array(["detenido", "recto", "izquierda", "derecha"])
+    cv2.putText(image, directions[direction_option], (150, 50), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(image, "Velocidad: ", (18, 80), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
+    cv2.putText(image, str(speed), (190, 80), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    print_direction_arrow(image, direction_option)
 
 
-def print_direction_arrow(image):
+def print_direction_arrow(image, direction_option):
     width, height = image.shape[0], image.shape[1]
-    if robot_direction == 0:
+
+    #     x1 = int(width / 2)
+    #     y1 = height
+    if direction_option == 0:
         pass
-    if robot_direction == 1:  # izquierda (left)
-        pt1 = (width / 2 - 10, height / 4)
-        pt2 = (width / 2 - 30, height / 4)
-    elif robot_direction == 2:    # derecha (right)
-        pt1 = (width / 2 + 10, height / 4)
-        pt2 = (width / 2 + 30, height / 4)
-    else:   # recto (straigth)
-        pt1 = (width / 2, height / 4)
-        pt2 = (width / 2, height / 4 + 30)
-    cv2.arrowedLine(image, (pt1[0], pt1[1]), (pt2[0], pt2[1]), (0, 0, 255))
-
-
-def set_robot_direction(direction, text_direction):
-    direction = robot_direction
-    text_direction = robot_direction_text
-
-
-def set_robot_speed(speed):
-    speed = robot_speed
+    if direction_option == 1:   # recto (straigth)
+        pt1 = np.array([width / 2, height / 4 + 80])
+        pt2 = np.array([width / 2, height / 4])
+    elif direction_option == 2:     # izquierda (left)
+        pt1 = np.array([width / 2 - 30, height / 4])
+        pt2 = np.array([width / 2 - 80, height / 4])
+    elif direction_option == 3:     # derecha (right)
+        pt1 = np.array([width / 2 + 30, height / 4])
+        pt2 = np.array([width / 2 + 80, height / 4])
+    cv2.arrowedLine(image, (int(pt1[0]), int(pt1[1])), (int(pt2[0]), int(pt2[1])), (0, 0, 255), thickness=10, tipLength=1)
 
 
 def nothing(a):
@@ -92,25 +88,29 @@ def draw_circles(img, points):
 
 
 # TEMPORAL
-def stop():
-    set_robot_speed(0)
-    set_robot_direction("detenido", 0)
+def stop(image):
+    # set_robot_speed(0)
+    # set_robot_direction("detenido", 0)
+    print_info_text(image, 0, 0)
     print("Stop - Frenando")
 
 
-def go_left(speed):
-    set_robot_speed(speed)
-    set_robot_direction("izquierda", 1)
+def go_straigth(speed, image):
+    # set_robot_speed(speed)
+    # set_robot_direction("recto", 3)
+    print_info_text(image, 1, speed)
+    print("Forward - Hacia delante")
+
+
+def go_left(speed, image):
+    # set_robot_speed(speed)
+    # set_robot_direction("izquierda", 1)
+    print_info_text(image, 2, speed)
     print("Left - Hacia la izquierda")
 
 
-def go_right(speed):
-    set_robot_speed(speed)
-    set_robot_direction("derecha", 2)
+def go_right(speed, image):
+    # set_robot_speed(speed)
+    # set_robot_direction("derecha", 2)
+    print_info_text(image, 3, speed)
     print("Right - Hacia la derecha")
-
-
-def go_straigth(speed):
-    set_robot_speed(speed)
-    set_robot_direction("recto", 3)
-    print("Forward - Hacia delante")

@@ -1,5 +1,5 @@
 import math
-
+import MotorHandler
 import numpy as np
 import cv2
 import Utils
@@ -73,7 +73,7 @@ def draw_heading_line(img, steering_angle):
     x1 = int(width / 2)
     y1 = height
     x2 = int(x1 - height / 2 / np.tan(steering_angle_radian))
-    y2 = int(height / 2)
+    y2 = int(height / 1.5)
 
     cv2.line(heading_image, (x1, y1), (x2, y2), (0, 0, 255), 5)
     heading_image = cv2.addWeighted(img, 0.8, heading_image, 1, 1)
@@ -104,7 +104,7 @@ def compute_steering_angle(frame, lane_lines):
     angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)  # ángulo (en grados) a la linea central
     steering_angle = angle_to_mid_deg + 90
 
-    print("El nuevo ángulo de dirección es: %s" % steering_angle)
+    # print("El nuevo ángulo de dirección es: %s" % steering_angle)
     return steering_angle
 
 
@@ -122,17 +122,17 @@ def stabilize_steering_angle(current_steering_angle, new_steering_angle, amount_
     else:
         stabilize_steering_angle = new_steering_angle
 
-    # print("Ángulo propuesto: %s. Ángulo estabilizado: %s" % (new_steering_angle, stabilize_steering_angle))
+    print("Ángulo propuesto: %s. Ángulo estabilizado: %s" % (new_steering_angle, stabilize_steering_angle))
     return stabilize_steering_angle
 
 
-def drive(steering_angle):
+def drive(steering_angle, image):
     if 45 < steering_angle < 90:
-        Utils.go_left(0.5)
+        MotorHandler.go_left(0.5, image)
     elif steering_angle == 90:
-        Utils.go_straigth(0.5)
+        MotorHandler.go_straigth(0.5, image)
     elif 90 < steering_angle < 136:
-        Utils.go_right(0.5)
+        MotorHandler.go_right(0.5, image)
 
 
 # def process_image(img):
@@ -184,7 +184,7 @@ def setup_lane_detection_image(frame, hough_parameters):
     if averaged_lines is not None and len(averaged_lines) != 0:
         new_steering_angle = compute_steering_angle(frame, averaged_lines)
         steering_angle = stabilize_steering_angle(90, new_steering_angle, len(averaged_lines))
-        drive(steering_angle)
+        drive(steering_angle, lines_lane_image)
         final_image = draw_heading_line(lines_lane_image, steering_angle)
     else:
         final_image = lines_lane_image

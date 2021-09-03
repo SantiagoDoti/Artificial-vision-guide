@@ -7,37 +7,25 @@ IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 
 mr_robot = Robot(left=(IN1, IN2), right=(IN3, IN4))
 
-
-# def go_backward(speed):
-#     mr_robot.backward(speed)
-#     Utils.set_robot_speed(speed)
-#     Utils.set_robot_direction("atras", 4)
-#     print("Backward - Marcha atras")
-
-
-def go_left(speed):
+def go_left(speed, image):
     mr_robot.left(speed)
-    Utils.set_robot_speed(speed)
-    Utils.set_robot_direction("izquierda", 1)
+    Utils.print_info_text(image, 2, speed)
     print("Left - Hacia la izquierda")
 
 
-def go_right(speed):
+def go_right(speed, image):
     mr_robot.right(speed)
-    Utils.set_robot_speed(speed)
-    Utils.set_robot_direction("derecha", 2)
+    Utils.print_info_text(image, 3, speed)
     print("Right - Hacia la derecha")
 
 
-def go_straigth(speed):
+def go_straigth(speed, image):
     mr_robot.forward()
-    Utils.set_robot_speed(speed)
-    Utils.set_robot_direction("recto", 3)
+    Utils.print_info_text(image, 1, speed)
     print("Forward - Hacia delante")
 
 
-def stop():
+def stop(image):
     mr_robot.stop()
-    Utils.set_robot_speed(0)
-    Utils.set_robot_direction("detenido", 0)
+    Utils.print_info_text(image, 0, 0)
     print("Stop - Frenando")
