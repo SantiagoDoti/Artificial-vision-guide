@@ -2,28 +2,32 @@ import cv2
 import time
 import ImageProcessor
 import Utils
-# import MotorHandler
+import MotorHandler
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 
-# Video en directo de la webcam
-video = cv2.VideoCapture(0)
+# Video en directo desde la Raspberry Pi Camera
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 32
+raw_capture = PiRGBArray(camera, size=(640, 480))
 
-while True:
-    check, frame = video.read()
+time.sleep(0.1)
 
-    Utils.print_info_text(frame)
+for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+    image = frame.array
 
-    lane_detection_image = ImageProcessor.setup_lane_detection_image(frame, None)
-    # cropped_image = ImageProcessor.setup_edges_image(frame)
+    lane_detection_image = ImageProcessor.setup_lane_detection_image(image, None)
+    #cropped_image = ImageProcessor.setup_edges_image(image)
 
     cv2.imshow("Lane detection image", lane_detection_image)
-    # cv2.imshow("Edges image (cropped)", cropped_image)
+    #cv2.imshow("Edges image (cropped)", cropped_image)
 
-    # MotorHandler.go_left(0.5)
-    # time.sleep(3)
-    # MotorHandler.stop()
-
+    raw_capture.truncate(0)
+    
     if cv2.waitKey(1) == 27:
+        MotorHandler.shutdown_motor()
         break
 
-video.release()
+# video.release()
 cv2.destroyAllWindows()

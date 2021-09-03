@@ -2,8 +2,8 @@
 import RPi.GPIO as GPIO
 import time
 
-TRIG = 23  # Variable que contiene el GPIO al cual conectamos la señal TRIG del sensor
-ECHO = 24  # Variable que contiene el GPIO al cual conectamos la señal ECHO del sensor
+TRIG = 7  # Variable que contiene el GPIO al cual conectamos la señal TRIG del sensor
+ECHO = 12  # Variable que contiene el GPIO al cual conectamos la señal ECHO del sensor
 
 GPIO.setmode(GPIO.BCM)  # Establecemos el modo según el cual nos refiriremos a los GPIO de nuestra RPi
 GPIO.setup(TRIG, GPIO.OUT)  # Configuramos el pin TRIG como una salida

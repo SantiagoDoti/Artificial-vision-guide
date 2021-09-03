@@ -6,6 +6,7 @@ import Utils
 
 # trapeze1 => testWhiteRight.mp4
 # trapeze2 => testYellowWithe.mp4
+# trapeze3 => Raspberry Pi Camera
 
 
 def region_of_interest(img):
@@ -14,8 +15,9 @@ def region_of_interest(img):
     triangle = [np.array([(150, height), (850, height), (450, 320)])]
     trapeze1 = [np.array([(0, height), (width / 2, height / 2), (width, height)], dtype=np.int32)]
     trapeze2 = [np.array([(255, 625), (533, 472), (742, 472), (1025, 625)], dtype=np.int32)]
+    trapeze3 = [np.array([(0, height), (120, height / 3), (520, height / 3), (width, height)], dtype=np.int32)]
     mask = np.zeros_like(img)
-    cv2.fillPoly(mask, trapeze1, 255)
+    cv2.fillPoly(mask, trapeze3, 255)
     return cv2.bitwise_and(img, mask)
 
 
@@ -128,11 +130,12 @@ def stabilize_steering_angle(current_steering_angle, new_steering_angle, amount_
 
 def drive(steering_angle, image):
     if 45 < steering_angle < 90:
-        MotorHandler.go_left(0.5, image)
+        MotorHandler.go_right(0.3, image)
     elif steering_angle == 90:
         MotorHandler.go_straigth(0.5, image)
     elif 90 < steering_angle < 136:
-        MotorHandler.go_right(0.5, image)
+        MotorHandler.go_left(0.3, image)
+
 
 
 # def process_image(img):
@@ -170,8 +173,12 @@ def setup_lane_detection_image(frame, hough_parameters):
     cropped_image = setup_edges_image(frame)
 
     # Creamos las lineas sobre la imagen negra cortada
-    lines = cv2.HoughLinesP(cropped_image, rho=hough_parameters[0], theta=np.pi / 180, threshold=int(hough_parameters[1]),
+    if hough_parameters is not None:
+        lines = cv2.HoughLinesP(cropped_image, rho=hough_parameters[0], theta=np.pi / 180, threshold=int(hough_parameters[1]),
                             lines=np.array([]), minLineLength=hough_parameters[2], maxLineGap=hough_parameters[3])
+    else:
+        lines = cv2.HoughLinesP(cropped_image, rho=1, theta=np.pi / 180, threshold=50,
+                            lines=np.array([]), minLineLength=40, maxLineGap=60)
 
     # Hacemos un promedio entre las lineas para dibujar UNA sola si hay varias cercanas
     averaged_lines = average_slope_intercept(frame, lines)

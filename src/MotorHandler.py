@@ -29,3 +29,7 @@ def stop(image):
     mr_robot.stop()
     Utils.print_info_text(image, 0, 0)
     print("Stop - Frenando")
+    
+    
+def shutdown_motor():
+    mr_robot.stop()
