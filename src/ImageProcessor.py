@@ -15,9 +15,10 @@ def region_of_interest(img):
     triangle = [np.array([(150, height), (850, height), (450, 320)])]
     trapeze1 = [np.array([(0, height), (width / 2, height / 2), (width, height)], dtype=np.int32)]
     trapeze2 = [np.array([(255, 625), (533, 472), (742, 472), (1025, 625)], dtype=np.int32)]
-    trapeze3 = [np.array([(0, height), (120, height / 3), (520, height / 3), (width, height)], dtype=np.int32)]
+    trapeze3 = [np.array([(0, height), (120, height / 3), (600, height / 3), (width, height)], dtype=np.int32)]
     mask = np.zeros_like(img)
     cv2.fillPoly(mask, trapeze3, 255)
+    #cv2.imshow("ROI", mask)
     return cv2.bitwise_and(img, mask)
 
 
@@ -137,8 +138,11 @@ def drive(steering_angle, image):
         MotorHandler.go_left(0.3, image)
 
 
+# Define el rango de blanco en HSV
+low_white = np.array([5,5,160])
+up_white = np.array([179,85,235])
 
-# def process_image(img):
+#def process_image(img):
 #     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 #     img = cv2.GaussianBlur(img, (5, 5), 0)
 #     mask = cv2.inRange(img, low_white, up_white)
