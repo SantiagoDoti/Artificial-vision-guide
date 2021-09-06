@@ -4,8 +4,9 @@ import numpy as np
 robot_direction = 3     # recto (straigth)
 robot_direction_text = "detenido"
 robot_speed = 0
-wT, hT = 960, 540
-# wT, hT = 1280, 720
+# wT, hT = 640, 480
+#wT, hT = 960, 540
+wT, hT = 1280, 720
 
 
 # Dibujamos sobre la imagen información importante sobre el rumbo actual del robot y la velocidad
