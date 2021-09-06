@@ -1,7 +1,7 @@
 import math
 # import MotorHandler
 import os
-
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import Utils
@@ -59,6 +59,21 @@ class ImageProcessor:
         # self.roi_points = np.float32([
         #     (0, height), (120, height / 3), (600, height / 3), (width, height)
         # ])
+
+        # Histograma que muestra los picos de pixeles blancos en la detección de carriles
+        self.histogram = None
+
+        # Parámetros de las ventanas deslizantes
+        self.no_of_windows = 10
+        self.margin = int((1 / 12) * width)  # Anchura de la ventana es +/- margen
+        self.minpix = int((1 / 24) * width)  # Número mínimo de píxeles para recentrar la ventana
+
+        # Líneas polinómicas de mejor ajuste para las líneas de carriles (izquierda y derecha)
+        self.left_fit = None
+        self.right_fit = None
+        self.left_lane_inds = None
+        self.right_lane_inds = None
+
 
     def region_of_interest(self, img):
         height = img.shape[0]
@@ -287,6 +302,46 @@ class ImageProcessor:
 
             cv2.destroyAllWindows()
 
+    # Calcula el histograma de concentración de pixeles blancos sobre la warped image
+    def calculate_histogram(self, frame=None, plot=True):
+        if frame is None:
+            frame = self.warped_frame
+
+        self.histogram = np.sum(frame[int(
+            frame.shape[0] / 2):, :], axis=0)
+
+        if plot:
+            figure, (ax1, ax2) = plt.subplots(2, 1)
+            figure.set_size_inches(10, 5)
+            ax1.imshow(frame, cmap='gray')
+            ax1.set_title("Warped binary frame")
+            ax2.plot(self.histogram)
+            ax2.set_title("Histograma de picos")
+            plt.show()
+
+        return self.histogram
+
+
+    # Obtenemos los índices de los pixeles de las líneas de carriles usando la técnica de ventanas deslizantes
+    def get_lane_line_indices_sliding_windows(self,left_fit, right_fit, plot=False):
+        margin = self.margin
+
+        # Coordenadas X e Y de todos los pixeles no nulos (blancos) en el frame
+        nonzero = self.warped_frame.nonzero()
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+
+        # Almacenamos esos índices
+        left_lane_inds = ((nonzerox > (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] - margin)) &
+                          (nonzerox < (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] + margin)))
+        right_lane_inds = ((nonzerox > (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] - margin)) &
+                          (nonzerox < (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] + margin)))
+        self.left_lane_inds = left_lane_inds
+        self.right_lane_inds = right_lane_inds
+
+
+
+
     # Warp pespective
     def perspective_transform(self, frame=None, plot=None):
 
@@ -385,8 +440,8 @@ def main():
 
     video = cv2.VideoCapture(video_path)
 
-    initialTrackbarVals = [492, 498, 192, 638]
-    Utils.initializeTrackbars(initialTrackbarVals)
+    # initialTrackbarVals = [492, 498, 192, 638]
+    # Utils.initializeTrackbars(initialTrackbarVals)
 
     while True:
         flag, frame = video.read()
@@ -397,12 +452,13 @@ def main():
             continue
 
         image_processor = ImageProcessor(orig_frame=frame)
-        #image_processor.plot_roi(plot=True)
+        # image_processor.plot_roi(plot=True)
         warped_image = image_processor.perspective_transform(frame=frame, plot=True)
-        #warped_points = image_processor.setup_warped_points_image(frame=frame)
+        # warped_points = image_processor.setup_warped_points_image(frame=frame)
+        image_processor.calculate_histogram(plot=True)
 
         cv2.imshow("Warped image", warped_image)
-        #cv2.imshow("Warp points", warped_points)
+        # cv2.imshow("Warp points", warped_points)
         if cv2.waitKey(10) == 27:
             break
 
