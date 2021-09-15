@@ -52,9 +52,10 @@ class ImageProcessor:
         self.height = height
 
         # testWhiteRight.mp4
-        self.roi_points = np.float32([
-            (100, height), (450, 300), (500, 300), (900, height)
-        ])
+        # self.roi_points = np.float32([
+        #     (100, height), (450, 300), (500, 300), (900, height)
+        # ])
+
         # self.padding = int(0.25 * width)
         # self.warped_points = np.float32([[192, 638], [492, 468], [788, 468], [1088, 638]])
         self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
@@ -68,9 +69,9 @@ class ImageProcessor:
         # ])
 
         # testYellowWithe.mp4
-        # self.roi_points = np.float32([
-        #     (255, 625), (533, 472), (742, 472), (1025, 625)
-        # ])
+        self.roi_points = np.float32([
+            (255, 625), (533, 472), (742, 472), (1025, 625)
+        ])
 
         # Raspberry Pi Camera
         # self.roi_points = np.float32([
@@ -268,15 +269,24 @@ class ImageProcessor:
     def calculate_car_position(self, print_in_terminal=False):
 
         # Asumimos que la cámara está centrada en la imagen, obtenemos la posición del coche en centimetros
-        car_location = self.orig_frame.shape[1] / 2
+        # car_location = self.orig_frame.shape[1] / 2
+        # frame.shape[0]
+        left_pos = self.left_fit[0] * (self.height ** 2) + self.left_fit[1] * self.height + self.left_fit[2]
+        right_pos = self.right_fit[0] * (self.height ** 2) + self.right_fit[1] * self.height + self.right_fit[2]
+        car_location = (left_pos + right_pos) / 2
 
-        # Fijamos la coordenada X del fondo de la linea del carril
-        height = self.orig_frame.shape[0]
-        bottom_left = self.left_fit[0] * height ** 2 + self.left_fit[1] * height + self.left_fit[2]
-        bottom_right = self.right_fit[0] * height ** 2 + self.right_fit[1] * height + self.right_fit[2]
+        center_cam = self.width / 2
+        offset = np.absolute(center_cam - car_location)
+        center_offset = offset * self.XM_PER_PIX
 
-        center_lane = (bottom_right - bottom_left) / 2 + bottom_left
-        center_offset = (np.abs(car_location) - np.abs(center_lane)) * self.XM_PER_PIX * 100
+        # cv2.circle(frame, (int(car_location), 0), 15, (0, 0, 255), cv2.FILLED)
+        #
+        # # Fijamos la coordenada X del fondo de la linea del carril
+        # bottom_left = self.left_fit[0] * height ** 2 + self.left_fit[1] * height + self.left_fit[2]
+        # bottom_right = self.right_fit[0] * height ** 2 + self.right_fit[1] * height + self.right_fit[2]
+        #
+        # center_lane = (bottom_right - bottom_left) / 2 + bottom_left
+        # center_offset = (np.abs(car_location) - np.abs(center_lane)) * self.XM_PER_PIX * 100
 
         if print_in_terminal:
             print(str(center_offset) + "cm")
@@ -405,8 +415,14 @@ class ImageProcessor:
 
         # Creamos los valores X e Y para graficar sobre la imagen
         ploty = np.linspace(0, self.warped_frame.shape[0] - 1, self.warped_frame.shape[0])
-        left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-        right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+        try:
+            left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+            right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+        except TypeError:
+            print("La función falló en ajustar alguna linea!")
+            left_fitx = 1 * ploty ** 2 + 1 * ploty
+            right_fitx = 1 * ploty ** 2 + 1 * ploty
+
         self.ploty = ploty
         self.left_fitx = left_fitx
         self.right_fitx = right_fitx
@@ -556,8 +572,13 @@ class ImageProcessor:
         if plot:
             # Creamos los valores X e Y para dibujar en la imagen
             ploty = np.linspace(0, frame_sliding_window.shape[0] - 1, frame_sliding_window.shape[0])
-            left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-            right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+            try:
+                left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+                right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+            except TypeError:
+                print("La función falló en ajustar alguna linea!")
+                left_fitx = 1 * ploty ** 2 + 1 * ploty
+                right_fitx = 1 * ploty ** 2 + 1 * ploty
 
             # Generamos una imagen para visualizar el resultado y le añadimos color a los píxeles de los carriles
             out_img = np.dstack((frame_sliding_window, frame_sliding_window, frame_sliding_window)) * 255
@@ -601,18 +622,6 @@ class ImageProcessor:
         (tresh, binary_warped) = cv2.threshold(self.warped_frame, 127, 255, cv2.THRESH_BINARY)
         self.warped_frame = binary_warped
 
-        # if plot:
-        #     warped_copy = self.warped_frame.copy()
-        #     warped_plot = cv2.polylines(warped_copy, np.int32([self.desired_roi_points]), True, (147, 20, 255), 3)
-        #
-        #     while True:
-        #         cv2.imshow("Warped image", warped_plot)
-        #
-        #         if cv2.waitKey(0):
-        #             break
-        #
-        #     cv2.destroyAllWindows()
-
         return self.warped_frame
 
     def setup_warped_points_image(self, frame):
@@ -624,7 +633,7 @@ class ImageProcessor:
 
 def main():
     root_path = os.path.abspath(os.path.dirname(__file__))
-    # videoPath = os.path.join(rootPath, "../tests/testWhiteRight.mp4")
+    # video_path = os.path.join(root_path, "../tests/testWhiteRight.mp4")
     video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
 
     # image = cv2.imread('imagenRoadPPS.png')
