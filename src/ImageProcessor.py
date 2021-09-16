@@ -276,7 +276,7 @@ class ImageProcessor:
         car_location = (left_pos + right_pos) / 2
 
         center_cam = self.width / 2
-        offset = np.absolute(center_cam - car_location)
+        offset = abs(center_cam - car_location)
         center_offset = offset * self.XM_PER_PIX
 
         # cv2.circle(frame, (int(car_location), 0), 15, (0, 0, 255), cv2.FILLED)
@@ -288,8 +288,13 @@ class ImageProcessor:
         # center_lane = (bottom_right - bottom_left) / 2 + bottom_left
         # center_offset = (np.abs(car_location) - np.abs(center_lane)) * self.XM_PER_PIX * 100
 
+        if center_offset > 0:
+            direction = " A LA DERECHA (right)"
+        else:
+            direction = " A LA IZQUIERDA (left)"
+
         if print_in_terminal:
-            print(str(center_offset) + "cm")
+            print('{:03.2f}'.format(center_offset) + 'm ' + direction)
 
         self.center_offset = center_offset
 
@@ -303,12 +308,24 @@ class ImageProcessor:
         else:
             image_copy = frame
 
-        cv2.putText(image_copy, 'Radio de la curva: ' + str((self.left_curvem + self.right_curvem) / 2)[:7] + ' m',
+        if self.center_offset > 0:
+            direction = " a la derecha."
+        else:
+            direction = " a la izquierda."
+
+        # Combinamos los radios
+        combined_radios = np.average([self.left_curvem, self.right_curvem])
+
+        cv2.putText(image_copy, 'Radio derecho: ' + '{:04.0f}'.format(self.right_curvem) + ' m',
                     (int((5 / 600) * self.width), int((20 / 338) * self.height)),
                     cv2.FONT_HERSHEY_SIMPLEX, (float((0.5 / 600) * self.width)),
                     (55, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(image_copy, 'Desplazamiento del centro: ' + str(self.center_offset)[:7] + ' cm',
+        cv2.putText(image_copy, 'Radio izquierdo: ' + '{:04.0f}'.format(self.left_curvem) + ' m',
                     (int((5 / 600) * self.width), int((40 / 338) * self.height)),
+                    cv2.FONT_HERSHEY_SIMPLEX, (float((0.5 / 600) * self.width)),
+                    (55, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(image_copy, 'Desplaz.: ' + '{:03.2f}'.format(abs(self.center_offset)) + 'm' + direction,
+                    (int((5 / 600) * self.width), int((60 / 338) * self.height)),
                     cv2.FONT_HERSHEY_SIMPLEX, (float((0.5 / 600) * self.width)),
                     (255, 255, 255), 2, cv2.LINE_AA)
 
@@ -689,7 +706,6 @@ def main():
         if cv2.waitKey(10) == 27:
             break
 
-    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
