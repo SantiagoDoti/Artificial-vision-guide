@@ -1,10 +1,14 @@
 import math
 # import MotorHandler
 import os
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import Utils
+# from picamera.array import PiRGBArray
+# from picamera import PiCamera
 
 scale_ratio = 1
 
@@ -55,28 +59,20 @@ class ImageProcessor:
         # self.roi_points = np.float32([
         #     (100, height), (450, 300), (500, 300), (900, height)
         # ])
-
-        # self.padding = int(0.25 * width)
-        # self.warped_points = np.float32([[192, 638], [492, 468], [788, 468], [1088, 638]])
-        self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
-        self.desired_roi_points = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
-        # self.desired_roi_points = np.float32([
-        #     # (0, 0), (0, 300), (500, 300), (900, height)
-        #     [self.padding, 0],  # Top-left corner
-        #     [self.padding, self.orig_image_size[1]],  # Bottom-left corner
-        #     [self.orig_image_size[0] - self.padding, self.orig_image_size[1]],  # Bottom-right corner
-        #     [self.orig_image_size[0] - self.padding, 0]  # Top-right corner
-        # ])
+        # self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
 
         # testYellowWithe.mp4
-        self.roi_points = np.float32([
-            (255, 625), (533, 472), (742, 472), (1025, 625)
-        ])
+        # self.roi_points = np.float32([
+        #     (255, 625), (533, 472), (742, 472), (1025, 625)
+        # ])
 
         # Raspberry Pi Camera
-        # self.roi_points = np.float32([
-        #     (0, height), (120, height / 3), (600, height / 3), (width, height)
-        # ])
+        self.roi_points = np.float32([
+            (0, height), (120, height / 3), (600, height / 3), (width, height)
+        ])
+        self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
+
+        self.desired_roi_points = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
 
         # Histograma que muestra los picos de pixeles blancos en la detección de carriles
         self.histogram = None
@@ -649,24 +645,36 @@ class ImageProcessor:
 
 
 def main():
-    root_path = os.path.abspath(os.path.dirname(__file__))
-    # video_path = os.path.join(root_path, "../tests/testWhiteRight.mp4")
-    video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
+    # Video pregrabado
+    # root_path = os.path.abspath(os.path.dirname(__file__))
+    # video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
+    #
+    # video = cv2.VideoCapture(video_path)
 
-    # image = cv2.imread('imagenRoadPPS.png')
+    # Video en vivo de la Raspberry Pi Camera
+    # camera = PiCamera()
+    # camera.resolution = (720, 480)
+    # camera.framerate = 32
+    # time.sleep(0.1)
 
-    video = cv2.VideoCapture(video_path)
+    # Video en directo desde CUALQUIER webcam
+    video = cv2.VideoCapture(0)
+    time.sleep(1)
 
+    # Posicion de los warped points, para visualizarlos en pantalla
     # initialTrackbarVals = [492, 498, 192, 638]
     # Utils.initializeTrackbars(initialTrackbarVals)
 
     while True:
+    # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+    #     image = frame.array
+
         flag, frame = video.read()
 
-        # Loop video
-        if not flag:
-            video = cv2.VideoCapture(video_path)
-            continue
+        # Loop video pregrabado
+        # if not flag:
+        #     video = cv2.VideoCapture(video_path)
+        #     continue
 
         width = int(frame.shape[1] * scale_ratio)
         height = int(frame.shape[0] * scale_ratio)
