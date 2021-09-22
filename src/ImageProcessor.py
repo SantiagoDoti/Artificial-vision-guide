@@ -1,3 +1,4 @@
+import glob
 import math
 # import MotorHandler
 import os
@@ -7,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import Utils
+import edgeDetection
+
 # from picamera.array import PiRGBArray
 # from picamera import PiCamera
 
@@ -27,10 +30,42 @@ prev_righty2 = None
 prev_left_fit2 = []
 prev_right_fit2 = []
 
+objpoints = []
+imgpoints = []
 
-# trapeze1 => testWhiteRight.mp4
-# trapeze2 => testYellowWithe.mp4
-# trapeze3 => Raspberry Pi Camera
+
+# Devuelve los objetos y puntos de la imagen, calculados en base a un conjunto de imágenes de tableros de ajedrez
+def find_objects_points_image():
+    # Almacenamos todos los puntos del objeto y los puntos de la imagen de todas las imágenes
+
+    global objpoints
+    global imgpoints
+
+    objpoints = []  # Puntos 3D en espacio del mundo real
+    imgpoints = []  # Puntos 2D en el plano de la imagen
+
+    # Calculamos cuales deberian ser los puntos de nuestro objeto en el mundo real
+    objp = np.zeros((6 * 9, 3), np.float32)  # El tablero de ajedrez tiene 9 esquinas interiores en X y 6 en Y
+    objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
+
+    all_image_path = glob.glob('./camera_calibrations/calibration*.jpg')
+
+    # Recorremos la lista de imágenes y buscamos las esquinas del tablero en cada una de ellas
+    for img_path in all_image_path:
+        img = cv2.imread(img_path)
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+
+        # Buscamos las esquinas del tablero de ajedrez
+        ret, corners = cv2.findChessboardCorners(gray, (9, 6))
+
+        if ret:
+            # Encontramos las esquinas de la imagen
+            imgpoints.append(corners)
+
+            # Añadimos el mismo punto del objeto ya que no cambia en el mundo real
+            objpoints.append(objp)
+
 
 class ImageProcessor:
 
@@ -59,7 +94,7 @@ class ImageProcessor:
         # self.roi_points = np.float32([
         #     (100, height), (450, 300), (500, 300), (900, height)
         # ])
-        # self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
+        # self.desired_roi_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
 
         # testYellowWithe.mp4
         # self.roi_points = np.float32([
@@ -67,12 +102,14 @@ class ImageProcessor:
         # ])
 
         # Raspberry Pi Camera
-        self.roi_points = np.float32([
-            (0, height), (120, height / 3), (600, height / 3), (width, height)
-        ])
-        self.warped_points = np.float32([[492, 498], [788, 498], [192, 638], [1088, 638]])
+        # self.roi_points = np.float32([
+        #     (0, height), (120, height / 3), (600, height / 3), (width, height)
+        # ])
+        # self.desired_roi_points = np.array([[186, 161], [57, 262], [583, 262], [454, 161]], np.float32)
 
-        self.desired_roi_points = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+        # Cámara de la PC (640 x 480)
+        self.roi_points = np.float32([(0, height), (120, height / 2), (520, height / 2), (width, height)])
+        self.desired_roi_points = np.array([[170, 480], [170, 0], [510, 0], [510, 480]], np.float32)
 
         # Histograma que muestra los picos de pixeles blancos en la detección de carriles
         self.histogram = None
@@ -106,70 +143,47 @@ class ImageProcessor:
         self.right_curvem = None
         self.center_offset = None
 
-        # def region_of_interest(self, img):
-    #     height = img.shape[0]
-    #     width = img.shape[1]
+    #     trapeze1 => testWhiteRight.mp4
+    #     trapeze2 => testYellowWithe.mp4
+    #     trapeze3 => Raspberry Pi Camera
     #     triangle = [np.array([(150, height), (850, height), (450, 320)])]
     #     trapeze1 = [np.array([(0, height), (width / 2, height / 2), (width, height)], dtype=np.int32)]
     #     trapeze2 = [np.array([(255, 625), (533, 472), (742, 472), (1025, 625)], dtype=np.int32)]
     #     trapeze3 = [np.array([(0, height), (120, height / 3), (600, height / 3), (width, height)], dtype=np.int32)]
-    #     mask = np.zeros_like(img)
-    #     cv2.fillPoly(mask, trapeze1, 255)
-    #     # cv2.imshow("ROI", mask)
-    #     return cv2.bitwise_and(img, mask)
-
-    # Filtro gaussiano especificando el tamaño del kernel
-    def blur_gaussian(self, channel, ksize=3):
-        return cv2.GaussianBlur(channel, (ksize, ksize), 0)
-
-    def threshold(self, channel, thresh=(128, 255), thresh_type=cv2.THRESH_BINARY):
-        # Si la intensidad del pixel es mayor a thresh[0], se convierte el valor
-        # a blanco (255), en caso contrario a negro (0)
-        return cv2.threshold(channel, thresh[0], thresh[1], thresh_type)
-
-    # Encuentra los bordes que están alineados vertical y horizontalmente en la imagen
-    def sobel(self, img_channel, orient='x', sobel_kernel=3):
-        if orient == 'x':
-            sobel = cv2.Sobel(img_channel, cv2.CV_64F, 1, 0, sobel_kernel)
-        if orient == 'y':
-            sobel = cv2.Sobel(img_channel, cv2.CV_64F, 0, 1, sobel_kernel)
-
-        return sobel
-
-    # Retorna un array binario de dos dimensiones (máscara) en la que todos los píxeles son 0 o 1
-    def binary_array(self, array, thresh, value=0):
-        if value == 0:
-            binary = np.ones_like(array)
-        else:
-            binary = np.zeros_like(array)
-            value = 1
-
-        binary[(array >= thresh[0]) & (array <= thresh[1])] = value
-
-        return binary
 
     # Sobel edge detection
     def mag_thresh(self, image, sobel_kernel=3, thresh=(0, 255)):
         # Obtenemos la magnitud de los bordes que están alineados verticalmente y horizotalmente en la imagen
-        sobelx = np.absolute(self.sobel(image, orient='x', sobel_kernel=sobel_kernel))
-        sobely = np.absolute(self.sobel(image, orient='y', sobel_kernel=sobel_kernel))
+        sobelx = np.absolute(edgeDetection.sobel(image, orient='x', sobel_kernel=sobel_kernel))
+        sobely = np.absolute(edgeDetection.sobel(image, orient='y', sobel_kernel=sobel_kernel))
 
         # Encontrar las areas de la imagen que tienen los cambios de intensidad de píxeles mas fuertes
         mag = np.sqrt(sobelx ** 2 + sobely ** 2)
 
-        return self.binary_array(mag, thresh)
+        return edgeDetection.binary_array(mag, thresh)
+
+    # Devuelve una imagen no distorsionada
+    def undistort_image(self, img):
+        global objpoints
+        global imgpoints
+        img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img_gray.shape[::-1], None, None)
+        undist = cv2.undistort(img, mtx, dist, None, mtx)
+        return undist
 
     def process_image(self, frame=None):
 
         if frame is None:
             frame = self.orig_frame
 
+        # undistort_frame = self.undistort_image(frame)
+
         hls_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
         # cv2.imshow("HLS image", hls_image)
 
         # sxbinary es una matriz llena de intensidades de blancos (ceros) y negros (255)
-        _, sxbinary = self.threshold(hls_image[:, :, 1], thresh=(120, 255))
-        sxbinary = self.blur_gaussian(sxbinary, ksize=3)
+        _, sxbinary = edgeDetection.threshold(hls_image[:, :, 1], thresh=(120, 255))
+        sxbinary = edgeDetection.blur_gaussian(sxbinary, ksize=3)
 
         # Los unos van a estar en las celdas con los valores mas altos de la derivada Sobel
         # (bordes de linea de carril mas fuertes)
@@ -179,12 +193,12 @@ class ImageProcessor:
         # Tendra una imagen llena de valores de intensidad 0 (negro) y 255 (blanco). Aquellos > 5 se estableceran en
         # blanco mientras que todos los demas en negro
         s_channel = hls_image[:, :, 2]
-        _, s_binary = self.threshold(s_channel, (5, 255))
+        _, s_binary = edgeDetection.threshold(s_channel, (80, 255))
 
         # Generamos un umbral binario sobre el canal rojo (R) del canal BGR del frame original ya que los colores de las
         # líneas de los carriles poseen valores de rojos puros: blanco (255, 255, 255) y amarillo (0, 255, 255)
         # Aquellos > 120 se estableceran en blanco mientras que todos los demas en negro
-        _, r_thresh = self.threshold(frame[:, :, 2], thresh=(120, 255))
+        _, r_thresh = edgeDetection.threshold(frame[:, :, 2], thresh=(120, 255))
 
         # Aplicamos una operacion AND bit a bit para reducir el ruido y los pixeles que no parezcan ser colores sólidos
         rs_binary = cv2.bitwise_and(s_binary, r_thresh)
@@ -192,7 +206,6 @@ class ImageProcessor:
 
         # Combinamos las posibles lineas de carriles con las posibles bordes de lineas de carril
         self.lane_line_markings = cv2.bitwise_or(rs_binary, sxbinary.astype(np.uint8))
-        # cv2.imshow("IMAGEN FINAL", lane_line_markings)
 
         return self.lane_line_markings
 
@@ -204,6 +217,7 @@ class ImageProcessor:
         if frame is None:
             frame = self.orig_frame.copy()
 
+        # this_image = cv2.polylines(frame, np.int32([self.desired_roi_points]), True, (147, 20, 255), 3)
         this_image = cv2.polylines(frame, np.int32([self.roi_points]), True, (147, 20, 255), 3)
 
         while True:
@@ -250,8 +264,10 @@ class ImageProcessor:
         left_fit_cr = np.polyfit(self.lefty * self.YM_PER_PIX, self.leftx * self.XM_PER_PIX, 2)
         right_fit_cr = np.polyfit(self.righty * self.YM_PER_PIX, self.rightx * self.XM_PER_PIX, 2)
 
-        left_curvem = ((1 + (2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit_cr[0])
-        right_curvem = ((1 + (2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit_cr[0])
+        left_curvem = ((1 + (2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+            2 * left_fit_cr[0])
+        right_curvem = ((1 + (2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+            2 * right_fit_cr[0])
 
         if print_in_terminal:
             print(left_curvem, "m", right_curvem, "m")
@@ -272,17 +288,8 @@ class ImageProcessor:
         car_location = (left_pos + right_pos) / 2
 
         center_cam = self.width / 2
-        offset = abs(center_cam - car_location)
+        offset = center_cam - car_location
         center_offset = offset * self.XM_PER_PIX
-
-        # cv2.circle(frame, (int(car_location), 0), 15, (0, 0, 255), cv2.FILLED)
-        #
-        # # Fijamos la coordenada X del fondo de la linea del carril
-        # bottom_left = self.left_fit[0] * height ** 2 + self.left_fit[1] * height + self.left_fit[2]
-        # bottom_right = self.right_fit[0] * height ** 2 + self.right_fit[1] * height + self.right_fit[2]
-        #
-        # center_lane = (bottom_right - bottom_left) / 2 + bottom_left
-        # center_offset = (np.abs(car_location) - np.abs(center_lane)) * self.XM_PER_PIX * 100
 
         if center_offset > 0:
             direction = " A LA DERECHA (right)"
@@ -309,8 +316,8 @@ class ImageProcessor:
         else:
             direction = " a la izquierda."
 
-        # Combinamos los radios
-        combined_radios = np.average([self.left_curvem, self.right_curvem])
+        # # Combinamos los radios
+        # combined_radios = np.average([self.left_curvem, self.right_curvem])
 
         cv2.putText(image_copy, 'Radio derecho: ' + '{:04.0f}'.format(self.right_curvem) + ' m',
                     (int((5 / 600) * self.width), int((20 / 338) * self.height)),
@@ -343,7 +350,8 @@ class ImageProcessor:
         cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
 
         # Deformamos el espacio en blanco de vuelta al espacio de la imagen original, usando la matrix inversa
-        newwarp = cv2.warpPerspective(color_warp, self.inv_transformation_matrix, (self.orig_frame.shape[1], self.orig_frame.shape[0]))
+        newwarp = cv2.warpPerspective(color_warp, self.inv_transformation_matrix,
+                                      (self.orig_frame.shape[1], self.orig_frame.shape[0]))
 
         # Combinamos el resultado con la imagen original
         result = cv2.addWeighted(self.orig_frame, 1, newwarp, 0.3, 0)
@@ -503,7 +511,6 @@ class ImageProcessor:
         no_of_windows = self.no_of_windows
 
         for window in range(no_of_windows):
-
             # Identificamos los límites de la ventana en X e Y (derecha e izquierda inclusive)
             win_y_low = self.warped_frame.shape[0] - (window + 1) * window_height
             win_y_high = self.warped_frame.shape[0] - window * window_height
@@ -534,8 +541,11 @@ class ImageProcessor:
             if len(good_right_inds) > minpix:
                 rightx_current = int(np.mean(nonzerox[good_right_inds]))
 
-        left_lane_inds = np.concatenate(left_lane_inds)
-        right_lane_inds = np.concatenate(right_lane_inds)
+        try:
+            left_lane_inds = np.concatenate(left_lane_inds)
+            right_lane_inds = np.concatenate(right_lane_inds)
+        except ValueError:
+            pass
 
         leftx = nonzerox[left_lane_inds]
         lefty = nonzeroy[left_lane_inds]
@@ -560,6 +570,10 @@ class ImageProcessor:
             rightx = prev_rightx
             righty = prev_righty
 
+        # if lefty is None or leftx is None:
+        #     left_fit = prev_left_fit
+        #     right_fit = prev_right_fit
+        # else:
         left_fit = np.polyfit(lefty, leftx, 2)
         right_fit = np.polyfit(righty, rightx, 2)
 
@@ -614,18 +628,18 @@ class ImageProcessor:
         return self.left_fit, self.right_fit
 
     # Warp pespective
-    def perspective_transform(self, frame=None, plot=None):
+    def perspective_transform(self, frame=None):
 
         if frame is None:
             frame = self.lane_line_markings
 
         # Calculamos la matrix de transformación
         self.transformation_matrix = cv2.getPerspectiveTransform(
-            self.warped_points, self.desired_roi_points)
+            self.roi_points, self.desired_roi_points)
 
         # Calculamos la inversa de la matrix de transformación
         self.inv_transformation_matrix = cv2.getPerspectiveTransform(
-            self.desired_roi_points, self.warped_points)
+            self.desired_roi_points, self.roi_points)
 
         # Realizamos la transformación con la matrix de transformación
         self.warped_frame = cv2.warpPerspective(
@@ -637,7 +651,10 @@ class ImageProcessor:
 
         return self.warped_frame
 
-    def setup_warped_points_image(self, frame):
+    def setup_desired_roi_points_image(self, frame=None):
+        if frame is None:
+            frame = self.orig_frame
+
         points = Utils.valTrackbars()
         points_warped_image = Utils.draw_circles(frame, points)
 
@@ -662,12 +679,12 @@ def main():
     time.sleep(1)
 
     # Posicion de los warped points, para visualizarlos en pantalla
-    # initialTrackbarVals = [492, 498, 192, 638]
-    # Utils.initializeTrackbars(initialTrackbarVals)
+    # initial_trackbar_vals = [186, 161, 57, 262]
+    # Utils.initializeTrackbars(initial_trackbar_vals)
 
     while True:
-    # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
-    #     image = frame.array
+        # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+        #     image = frame.array
 
         flag, frame = video.read()
 
@@ -688,8 +705,8 @@ def main():
 
         image_processor.plot_roi(plot=False)
 
-        warped_image = image_processor.perspective_transform(plot=False)
-        # warped_points = image_processor.setup_warped_points_image(frame=frame)
+        warped_image = image_processor.perspective_transform()
+        # desired_roi_points_marked = image_processor.setup_desired_roi_points_image(frame=frame)
 
         image_processor.calculate_histogram(plot=False)
 
@@ -707,13 +724,14 @@ def main():
 
         # cv2.imshow("Imagen original", lane_line_markings)
         # cv2.imshow("Imagen deformada", warped_image)
-        # cv2.imshow("Imagen con puntos de deforme", warped_points)
+        # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
         # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
         cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
 
         if cv2.waitKey(10) == 27:
             break
 
+    video.release()
     cv2.destroyAllWindows()
 
 
