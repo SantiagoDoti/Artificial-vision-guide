@@ -151,16 +151,6 @@ class ImageProcessor:
     #     trapeze2 = [np.array([(255, 625), (533, 472), (742, 472), (1025, 625)], dtype=np.int32)]
     #     trapeze3 = [np.array([(0, height), (120, height / 3), (600, height / 3), (width, height)], dtype=np.int32)]
 
-    # Sobel edge detection
-    def mag_thresh(self, image, sobel_kernel=3, thresh=(0, 255)):
-        # Obtenemos la magnitud de los bordes que están alineados verticalmente y horizotalmente en la imagen
-        sobelx = np.absolute(edgeDetection.sobel(image, orient='x', sobel_kernel=sobel_kernel))
-        sobely = np.absolute(edgeDetection.sobel(image, orient='y', sobel_kernel=sobel_kernel))
-
-        # Encontrar las areas de la imagen que tienen los cambios de intensidad de píxeles mas fuertes
-        mag = np.sqrt(sobelx ** 2 + sobely ** 2)
-
-        return edgeDetection.binary_array(mag, thresh)
 
     # Devuelve una imagen no distorsionada
     def undistort_image(self, img):
@@ -187,7 +177,7 @@ class ImageProcessor:
 
         # Los unos van a estar en las celdas con los valores mas altos de la derivada Sobel
         # (bordes de linea de carril mas fuertes)
-        sxbinary = self.mag_thresh(sxbinary, sobel_kernel=3, thresh=(110, 255))
+        sxbinary = edgeDetection.mag_thresh(sxbinary, sobel_kernel=3, thresh=(110, 255))
 
         # Generamos un umbral binario sobre el canal S (saturacion) para eliminar los colores apagados de la carretera
         # Tendra una imagen llena de valores de intensidad 0 (negro) y 255 (blanco). Aquellos > 5 se estableceran en
@@ -662,6 +652,11 @@ class ImageProcessor:
 
 
 def main():
+
+    # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
+    # initial_trackbar_vals = [186, 161, 57, 262]
+    # Utils.initializeTrackbars(initial_trackbar_vals)
+
     # Video pregrabado
     # root_path = os.path.abspath(os.path.dirname(__file__))
     # video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
@@ -672,15 +667,12 @@ def main():
     # camera = PiCamera()
     # camera.resolution = (720, 480)
     # camera.framerate = 32
+    # raw_capture = PiRGBArray(camera, size=(720, 480))
     # time.sleep(0.1)
 
     # Video en directo desde CUALQUIER webcam
     video = cv2.VideoCapture(0)
-    time.sleep(1)
-
-    # Posicion de los warped points, para visualizarlos en pantalla
-    # initial_trackbar_vals = [186, 161, 57, 262]
-    # Utils.initializeTrackbars(initial_trackbar_vals)
+    time.sleep(0.1)
 
     while True:
         # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
@@ -727,6 +719,8 @@ def main():
         # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
         # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
         cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
+
+        # raw_capture.truncate(0)
 
         if cv2.waitKey(10) == 27:
             break

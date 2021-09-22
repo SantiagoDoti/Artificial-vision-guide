@@ -2,6 +2,18 @@ import cv2
 import numpy as np
 
 
+# Sobel edge detection
+def mag_thresh(image, sobel_kernel=3, thresh=(0, 255)):
+    # Obtenemos la magnitud de los bordes que están alineados verticalmente y horizotalmente en la imagen
+    sobelx = np.absolute(sobel(image, orient='x', sobel_kernel=sobel_kernel))
+    sobely = np.absolute(sobel(image, orient='y', sobel_kernel=sobel_kernel))
+
+    # Encontrar las areas de la imagen que tienen los cambios de intensidad de píxeles mas fuertes
+    mag = np.sqrt(sobelx ** 2 + sobely ** 2)
+
+    return binary_array(mag, thresh)
+
+
 # Retorna un array binario de dos dimensiones (máscara) en la que todos los píxeles son 0 o 1
 def binary_array(array, thresh, value=0):
     if value == 0:
