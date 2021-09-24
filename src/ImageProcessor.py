@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import Utils
 import edgeDetection
+import MotorHandler
 
 # from picamera.array import PiRGBArray
 # from picamera import PiCamera
@@ -108,7 +109,7 @@ class ImageProcessor:
         # self.desired_roi_points = np.array([[186, 161], [57, 262], [583, 262], [454, 161]], np.float32)
 
         # Cámara de la PC (640 x 480)
-        self.roi_points = np.float32([(0, height), (120, height / 2), (520, height / 2), (width, height)])
+        self.roi_points = np.float32([(0, height), (120, 200), (520, 200), (width, height)])
         self.desired_roi_points = np.array([[170, 480], [170, 0], [510, 0], [510, 480]], np.float32)
 
         # Histograma que muestra los picos de pixeles blancos en la detección de carriles
@@ -150,7 +151,6 @@ class ImageProcessor:
     #     trapeze1 = [np.array([(0, height), (width / 2, height / 2), (width, height)], dtype=np.int32)]
     #     trapeze2 = [np.array([(255, 625), (533, 472), (742, 472), (1025, 625)], dtype=np.int32)]
     #     trapeze3 = [np.array([(0, height), (120, height / 3), (600, height / 3), (width, height)], dtype=np.int32)]
-
 
     # Devuelve una imagen no distorsionada
     def undistort_image(self, img):
@@ -254,9 +254,11 @@ class ImageProcessor:
         left_fit_cr = np.polyfit(self.lefty * self.YM_PER_PIX, self.leftx * self.XM_PER_PIX, 2)
         right_fit_cr = np.polyfit(self.righty * self.YM_PER_PIX, self.rightx * self.XM_PER_PIX, 2)
 
-        left_curvem = ((1 + (2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+        left_curvem = ((1 + (
+                    2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * left_fit_cr[0])
-        right_curvem = ((1 + (2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+        right_curvem = ((1 + (
+                    2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * right_fit_cr[0])
 
         if print_in_terminal:
@@ -371,9 +373,8 @@ class ImageProcessor:
         # Guardamos los índices de píxeles del carril izquierdo y derecho
         left_lane_inds = ((nonzerox > (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] - margin)) &
                           (nonzerox < (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] + margin)))
-        right_lane_inds = (
-                (nonzerox > (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] - margin)) &
-                (nonzerox < (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] + margin)))
+        right_lane_inds = ((nonzerox > (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] - margin)) &
+                            (nonzerox < (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] + margin)))
         self.left_lane_inds = left_lane_inds
         self.right_lane_inds = right_lane_inds
 
@@ -652,7 +653,6 @@ class ImageProcessor:
 
 
 def main():
-
     # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
     # initial_trackbar_vals = [186, 161, 57, 262]
     # Utils.initializeTrackbars(initial_trackbar_vals)
@@ -708,11 +708,13 @@ def main():
 
         frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
 
-        image_processor.calculate_curvature(print_in_terminal=True)
+        image_processor.calculate_curvature()
 
-        image_processor.calculate_car_position(print_in_terminal=True)
+        robot_offset = image_processor.calculate_car_position()
 
         frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
+
+        MotorHandler.guide_robot_sides(robot_offset)
 
         # cv2.imshow("Imagen original", lane_line_markings)
         # cv2.imshow("Imagen deformada", warped_image)

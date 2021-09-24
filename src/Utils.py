@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def nothing(a):
     pass
 
@@ -22,8 +23,8 @@ def valTrackbars():
     height_top = cv2.getTrackbarPos("Height Top", "Trackbars")
     width_bottom = cv2.getTrackbarPos("Width Bottom", "Trackbars")
     height_bottom = cv2.getTrackbarPos("Height Bottom", "Trackbars")
-    points = np.float32([(width_top, height_top), (wT-width_top, height_top),
-                         (width_bottom, height_bottom), (wT-width_bottom, height_bottom)])
+    points = np.float32([(width_top, height_top), (wT - width_top, height_top),
+                         (width_bottom, height_bottom), (wT - width_bottom, height_bottom)])
     return points
 
 
@@ -56,42 +57,12 @@ def draw_circles(img, points):
 
 
 # TEMPORAL
-robot_direction = 3     # recto (straigth)
+robot_direction = 3  # recto (straigth)
 robot_direction_text = "detenido"
 robot_speed = 0
 wT, hT = 640, 480
-#wT, hT = 960, 540
-#wT, hT = 1280, 720
-
-
-# Dibujamos sobre la imagen información importante sobre el rumbo actual del robot y la velocidad
-def print_info_text(image, direction_option, speed):
-    cv2.rectangle(image, (10, 10), (310, 100), (0, 0, 255), 4)
-    cv2.putText(image, "Rumbo: ", (18, 50), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    directions = np.array(["detenido", "recto", "izquierda", "derecha"])
-    cv2.putText(image, directions[direction_option], (150, 50), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(image, "Velocidad: ", (18, 80), 2, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    cv2.putText(image, str(speed), (190, 80), 3, 1, (255, 255, 255), 2, cv2.LINE_AA)
-    print_direction_arrow(image, direction_option)
-
-
-def print_direction_arrow(image, direction_option):
-    width, height = image.shape[0], image.shape[1]
-
-    #     x1 = int(width / 2)
-    #     y1 = height
-    if direction_option == 0:
-        pass
-    if direction_option == 1:   # recto (straigth)
-        pt1 = np.array([width / 2, height / 4 + 80])
-        pt2 = np.array([width / 2, height / 4])
-    elif direction_option == 2:     # izquierda (left)
-        pt1 = np.array([width / 2 - 30, height / 4])
-        pt2 = np.array([width / 2 - 80, height / 4])
-    elif direction_option == 3:     # derecha (right)
-        pt1 = np.array([width / 2 + 30, height / 4])
-        pt2 = np.array([width / 2 + 80, height / 4])
-    cv2.arrowedLine(image, (int(pt1[0]), int(pt1[1])), (int(pt2[0]), int(pt2[1])), (0, 0, 255), thickness=10, tipLength=1)
+# wT, hT = 960, 540
+# wT, hT = 1280, 720
 
 
 def stop(image):
