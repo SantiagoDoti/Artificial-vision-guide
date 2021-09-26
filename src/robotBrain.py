@@ -1,8 +1,8 @@
 import cv2
 import time
-import ImageProcessor
+import imageProcessor
 import Utils
-import MotorHandler
+import motorHandler
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
@@ -18,7 +18,7 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
     image = frame.array
 
     # cropped_image = ImageProcessor.setup_edges_image(image)
-    lane_detection_image = ImageProcessor.setup_lane_detection_image(image, None)
+    lane_detection_image = imageProcessor.setup_lane_detection_image(image, None)
 
     cv2.imshow("Lane detection image", lane_detection_image)
     # cv2.imshow("Edges image (cropped)", cropped_image)
@@ -30,7 +30,7 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
     raw_capture.truncate(0)
 
     if cv2.waitKey(1) == 27:
-        MotorHandler.shutdown_motor()
+        motorHandler.shutdown_motor()
         break
 
 # video.release()

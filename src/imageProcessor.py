@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import Utils
 import edgeDetection
-import MotorHandler
+import motorHandler
 
 # from picamera.array import PiRGBArray
 # from picamera import PiCamera
@@ -714,7 +714,7 @@ def main():
 
         frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
 
-        MotorHandler.guide_robot_sides(robot_offset)
+        motorHandler.guide_robot_sides(robot_offset)
 
         # cv2.imshow("Imagen original", lane_line_markings)
         # cv2.imshow("Imagen deformada", warped_image)
