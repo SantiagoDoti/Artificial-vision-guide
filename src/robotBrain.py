@@ -9,24 +9,11 @@ import motorHandler
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
-# Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
-# initial_trackbar_vals = [186, 161, 57, 262]
-# Utils.initializeTrackbars(initial_trackbar_vals)
-
-# Video pregrabado
-# root_path = os.path.abspath(os.path.dirname(__file__))
-# video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
-# video = cv2.VideoCapture(video_path)
-
 # Video en vivo de la Raspberry Pi Camera
-# camera = PiCamera()
-# camera.resolution = (720, 480)
-# camera.framerate = 32
-# raw_capture = PiRGBArray(camera, size=(720, 480))
-# time.sleep(0.1)
-
-# Video en directo desde CUALQUIER webcam
-video = cv2.VideoCapture(0)
+camera = PiCamera()
+camera.resolution = (720, 480)
+camera.framerate = 32
+raw_capture = PiRGBArray(camera, size=(720, 480))
 time.sleep(0.1)
 
 # Creamos el socket para luego enviarle las imágenes
@@ -63,5 +50,8 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
         break
 
 server_socket.close()
+<<<<<<< HEAD
 video.release()
+=======
+>>>>>>> 3a896f89b7c630473935c17a449fac5f1861df0f
 cv2.destroyAllWindows()
