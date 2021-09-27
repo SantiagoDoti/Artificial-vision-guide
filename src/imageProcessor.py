@@ -9,10 +9,6 @@ import numpy as np
 import cv2
 import Utils
 import edgeDetection
-import motorHandler
-
-# from picamera.array import PiRGBArray
-# from picamera import PiCamera
 
 scale_ratio = 1
 
@@ -161,7 +157,7 @@ class ImageProcessor:
         undist = cv2.undistort(img, mtx, dist, None, mtx)
         return undist
 
-    def process_image(self, frame=None):
+    def detect_lane_markings(self, frame=None):
 
         if frame is None:
             frame = self.orig_frame
@@ -255,10 +251,10 @@ class ImageProcessor:
         right_fit_cr = np.polyfit(self.righty * self.YM_PER_PIX, self.rightx * self.XM_PER_PIX, 2)
 
         left_curvem = ((1 + (
-                    2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+                2 * left_fit_cr[0] * y_eval * self.YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * left_fit_cr[0])
         right_curvem = ((1 + (
-                    2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+                2 * right_fit_cr[0] * y_eval * self.YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * right_fit_cr[0])
 
         if print_in_terminal:
@@ -373,8 +369,9 @@ class ImageProcessor:
         # Guardamos los índices de píxeles del carril izquierdo y derecho
         left_lane_inds = ((nonzerox > (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] - margin)) &
                           (nonzerox < (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] + margin)))
-        right_lane_inds = ((nonzerox > (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] - margin)) &
-                            (nonzerox < (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] + margin)))
+        right_lane_inds = (
+                    (nonzerox > (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] - margin)) &
+                    (nonzerox < (right_fit[0] * (nonzeroy ** 2) + right_fit[1] * nonzeroy + right_fit[2] + margin)))
         self.left_lane_inds = left_lane_inds
         self.right_lane_inds = right_lane_inds
 
@@ -652,83 +649,128 @@ class ImageProcessor:
         return points_warped_image
 
 
-def main():
-    # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
-    # initial_trackbar_vals = [186, 161, 57, 262]
-    # Utils.initializeTrackbars(initial_trackbar_vals)
+def process_image(frame):
 
-    # Video pregrabado
-    # root_path = os.path.abspath(os.path.dirname(__file__))
-    # video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
-    #
-    # video = cv2.VideoCapture(video_path)
+    # Loop video pregrabado
+    # if not flag:
+    #     video = cv2.VideoCapture(video_path)
+    #     continue
 
-    # Video en vivo de la Raspberry Pi Camera
-    # camera = PiCamera()
-    # camera.resolution = (720, 480)
-    # camera.framerate = 32
-    # raw_capture = PiRGBArray(camera, size=(720, 480))
-    # time.sleep(0.1)
+    width = int(frame.shape[1] * scale_ratio)
+    height = int(frame.shape[0] * scale_ratio)
+    frame = cv2.resize(frame, (width, height))
 
-    # Video en directo desde CUALQUIER webcam
-    video = cv2.VideoCapture(0)
-    time.sleep(0.1)
+    original_frame = frame.copy()
 
-    while True:
-        # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
-        #     image = frame.array
+    image_processor = ImageProcessor(orig_frame=original_frame)
 
-        flag, frame = video.read()
+    lane_line_markings = image_processor.detect_lane_markings()
 
-        # Loop video pregrabado
-        # if not flag:
-        #     video = cv2.VideoCapture(video_path)
-        #     continue
+    image_processor.plot_roi(plot=False)
 
-        width = int(frame.shape[1] * scale_ratio)
-        height = int(frame.shape[0] * scale_ratio)
-        frame = cv2.resize(frame, (width, height))
+    warped_image = image_processor.perspective_transform()
+    # desired_roi_points_marked = image_processor.setup_desired_roi_points_image(frame=frame)
 
-        original_frame = frame.copy()
+    image_processor.calculate_histogram(plot=False)
 
-        image_processor = ImageProcessor(orig_frame=original_frame)
+    left_fit, right_fit = image_processor.get_lane_line_indices_sliding_windows(plot=False)
 
-        lane_line_markings = image_processor.process_image()
+    image_processor.get_lane_line_previous_window(left_fit, right_fit, plot=False)
 
-        image_processor.plot_roi(plot=False)
+    frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
 
-        warped_image = image_processor.perspective_transform()
-        # desired_roi_points_marked = image_processor.setup_desired_roi_points_image(frame=frame)
+    image_processor.calculate_curvature()
 
-        image_processor.calculate_histogram(plot=False)
+    robot_offset = image_processor.calculate_car_position()
 
-        left_fit, right_fit = image_processor.get_lane_line_indices_sliding_windows(plot=False)
+    frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
 
-        image_processor.get_lane_line_previous_window(left_fit, right_fit, plot=False)
+    # cv2.imshow("Imagen original", lane_line_markings)
+    # cv2.imshow("Imagen deformada", warped_image)
+    # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
+    # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
+    # cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
 
-        frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
-
-        image_processor.calculate_curvature()
-
-        robot_offset = image_processor.calculate_car_position()
-
-        frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
-
-        motorHandler.guide_robot_sides(robot_offset)
-
-        # cv2.imshow("Imagen original", lane_line_markings)
-        # cv2.imshow("Imagen deformada", warped_image)
-        # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
-        # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
-        cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
-
-        # raw_capture.truncate(0)
-
-        if cv2.waitKey(10) == 27:
-            break
-
-    video.release()
-    cv2.destroyAllWindows()
+    return frame_with_info
 
 
-main()
+# def main():
+#     # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
+#     # initial_trackbar_vals = [186, 161, 57, 262]
+#     # Utils.initializeTrackbars(initial_trackbar_vals)
+#
+#     # Video pregrabado
+#     # root_path = os.path.abspath(os.path.dirname(__file__))
+#     # video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
+#     #
+#     # video = cv2.VideoCapture(video_path)
+#
+#     # Video en vivo de la Raspberry Pi Camera
+#     # camera = PiCamera()
+#     # camera.resolution = (720, 480)
+#     # camera.framerate = 32
+#     # raw_capture = PiRGBArray(camera, size=(720, 480))
+#     # time.sleep(0.1)
+#
+#     # Video en directo desde CUALQUIER webcam
+#     video = cv2.VideoCapture(0)
+#     time.sleep(0.1)
+#
+#     while True:
+#         # for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+#         #     image = frame.array
+#
+#         flag, frame = video.read()
+#
+#         # Loop video pregrabado
+#         # if not flag:
+#         #     video = cv2.VideoCapture(video_path)
+#         #     continue
+#
+#         width = int(frame.shape[1] * scale_ratio)
+#         height = int(frame.shape[0] * scale_ratio)
+#         frame = cv2.resize(frame, (width, height))
+#
+#         original_frame = frame.copy()
+#
+#         image_processor = ImageProcessor(orig_frame=original_frame)
+#
+#         lane_line_markings = image_processor.detect_lane_markings()
+#
+#         image_processor.plot_roi(plot=False)
+#
+#         warped_image = image_processor.perspective_transform()
+#         # desired_roi_points_marked = image_processor.setup_desired_roi_points_image(frame=frame)
+#
+#         image_processor.calculate_histogram(plot=False)
+#
+#         left_fit, right_fit = image_processor.get_lane_line_indices_sliding_windows(plot=False)
+#
+#         image_processor.get_lane_line_previous_window(left_fit, right_fit, plot=False)
+#
+#         frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
+#
+#         image_processor.calculate_curvature()
+#
+#         robot_offset = image_processor.calculate_car_position()
+#
+#         frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
+#
+#         motorHandler.guide_robot_sides(robot_offset)
+#
+#         # cv2.imshow("Imagen original", lane_line_markings)
+#         # cv2.imshow("Imagen deformada", warped_image)
+#         # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
+#         # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
+#         cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
+#
+#         # raw_capture.truncate(0)
+#
+#         if cv2.waitKey(10) == 27:
+#             break
+#
+#     video.release()
+#     cv2.destroyAllWindows()
+
+
+# main()

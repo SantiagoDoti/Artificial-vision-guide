@@ -4,10 +4,6 @@ import cv2
 import time
 import struct
 import imageProcessor
-import Utils
-import motorHandler
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 
 # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
 # initial_trackbar_vals = [186, 161, 57, 262]
@@ -18,16 +14,9 @@ from picamera import PiCamera
 # video_path = os.path.join(root_path, "../tests/testYellowWithe.mp4")
 # video = cv2.VideoCapture(video_path)
 
-# Video en vivo de la Raspberry Pi Camera
-camera = PiCamera()
-camera.resolution = (720, 480)
-camera.framerate = 32
-raw_capture = PiRGBArray(camera, size=(720, 480))
-time.sleep(0.1)
-
 # Video en directo desde CUALQUIER webcam
-# video = cv2.VideoCapture(0)
-# time.sleep(0.1)
+video = cv2.VideoCapture(0)
+time.sleep(0.1)
 
 # Creamos el socket para luego enviarle las imágenes
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -44,8 +33,13 @@ print("ESCUCHANDO EN: ", socket_address)
 client_socket, addr = server_socket.accept()
 print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 
-for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
-    image = frame.array
+while True:
+    flag, frame = video.read()
+
+    # Loop video pregrabado
+    # if not flag:
+    #     video = cv2.VideoCapture(video_path)
+    #     continue
 
     final_image = imageProcessor.process_image(frame)
 
@@ -57,10 +51,10 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
 
-    raw_capture.truncate(0)
-
     if cv2.waitKey(10) == 27:
         break
 
 server_socket.close()
+video.release()
 cv2.destroyAllWindows()
+
