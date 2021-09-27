@@ -19,7 +19,7 @@ time.sleep(0.1)
 # Creamos el socket para luego enviarle las imágenes
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
-host_ip = socket.gethostbyname(host_name)
+host_ip = "192.168.1.70"
 print("HOST IP: ", host_ip)
 port = 9999
 socket_address = (host_ip, port)
@@ -34,11 +34,11 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
     image = frame.array
 
-    final_image = imageProcessor.process_image(frame)
+    #final_image = imageProcessor.process_image(image)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
-        a = pickle.dumps(final_image)
+        a = pickle.dumps(image)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
 
@@ -50,8 +50,4 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
         break
 
 server_socket.close()
-<<<<<<< HEAD
-video.release()
-=======
->>>>>>> 3a896f89b7c630473935c17a449fac5f1861df0f
 cv2.destroyAllWindows()
