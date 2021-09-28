@@ -50,6 +50,7 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
 
     if cv2.waitKey(10) == 27:
         break
-
+    
+motorHandler.stop()
 server_socket.close()
 cv2.destroyAllWindows()

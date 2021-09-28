@@ -12,34 +12,47 @@ safety_zone_range = 0.05
 # driving = False
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(IN1, GPIO.out)
-GPIO.setup(IN2, GPIO.out)
-GPIO.setup(IN3, GPIO.out)
-GPIO.setup(IN4, GPIO.out)
-GPIO.setup(EN, GPIO.out)
+GPIO.setup(IN1, GPIO.OUT)
+GPIO.setup(IN2, GPIO.OUT)
+GPIO.setup(IN3, GPIO.OUT)
+GPIO.setup(IN4, GPIO.OUT)
+GPIO.setup(EN, GPIO.OUT)
+GPIO.output(IN1,GPIO.LOW)
+GPIO.output(IN2,GPIO.LOW)
+GPIO.output(IN3,GPIO.LOW)
+GPIO.output(IN4,GPIO.LOW)
 
-# Control del motor de dirección
-GPIO.output(IN1, GPIO.HIGH)
-GPIO.output(IN2, GPIO.LOW)
-steering = GPIO.PWN(EN, 1000)
-steering.stop()
+# 
+# # Control del motor de dirección
+# GPIO.output(IN1, GPIO.HIGH)
+# GPIO.output(IN2, GPIO.LOW)
+# steering = GPIO.PWM(EN, 1000)
+# steering.stop()
+# 
+# # Control de motores de aceleración
+# GPIO.output(IN3, GPIO.HIGH)
+# GPIO.output(IN4, GPIO.LOW)
+# throttle = GPIO.PWM(EN, 1000)
+# throttle.stop()
 
-# Control de motores de aceleración
-GPIO.output(IN3, GPIO.HIGH)
-GPIO.output(IN4, GPIO.LOW)
-throttle = GPIO.PWN(EN, 1000)
-throttle.stop()
+# time.sleep(1)
+# 
+# throttle.start(25)
+# steering.start(100)
+# 
+# time.sleep(3)
+# 
+# throttle.stop()
+# steering.stop()
 
-time.sleep(1)
+# GPIO.output(IN1,GPIO.LOW)
+# GPIO.output(IN2,GPIO.LOW)
+# GPIO.output(IN3,GPIO.LOW)
+# GPIO.output(IN4,GPIO.LOW)
 
-throttle.start(25)
-steering.start(100)
+p=GPIO.PWM(EN,1000)
 
-time.sleep(3)
-
-throttle.stop()
-steering.stop()
-
+p.start(25)
 
 def guide_robot_sides(center_offset):
     if center_offset > safety_zone_range:
@@ -56,7 +69,7 @@ def go_left(speed, center_offset):
     # mr_robot.left(speed)
     GPIO.output(IN1, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
-    steering.start(100)
+#     steering.start(100)
     print("Moviéndose hacia la izquierda [{:0.2f}] ".format(center_offset))
     # time.sleep(0.2)
     # driving = False
@@ -68,7 +81,7 @@ def go_right(speed, center_offset):
     # mr_robot.right(speed)
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.HIGH)
-    steering.start(100)
+#     steering.start(100)
     print("Moviéndose hacia la derecha [{:0.2f}] ".format(center_offset))
     # time.sleep(0.2)
     # driving = False
@@ -89,6 +102,10 @@ def stop():
     # global driving
     # driving = True
     # mr_robot.stop()
+    GPIO.output(IN1,GPIO.LOW)
+    GPIO.output(IN2,GPIO.LOW)
+    GPIO.output(IN3,GPIO.LOW)
+    GPIO.output(IN4,GPIO.LOW)
     print("Deteniendo el robot")
     # time.sleep(0.2)
     # driving = False
