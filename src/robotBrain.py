@@ -34,11 +34,11 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
     image = frame.array
 
-    #final_image = imageProcessor.process_image(image)
+    final_image = imageProcessor.process_image(image)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
-        a = pickle.dumps(image)
+        a = pickle.dumps(final_image)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
 
