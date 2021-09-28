@@ -34,7 +34,7 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
     image = frame.array
 
-    final_image = imageProcessor.process_image(image)
+    car_offset, final_image = imageProcessor.process_image(image)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
@@ -43,6 +43,8 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
         client_socket.sendall(message)
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
+
+    motorHandler.guide_robot_sides(car_offset)
 
     raw_capture.truncate(0)
 

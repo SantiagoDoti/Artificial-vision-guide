@@ -4,6 +4,7 @@ import cv2
 import time
 import struct
 import imageProcessor
+import motorHandler
 
 # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
 # initial_trackbar_vals = [186, 161, 57, 262]
@@ -41,13 +42,15 @@ while True:
     #     video = cv2.VideoCapture(video_path)
     #     continue
 
-    final_image = imageProcessor.process_image(frame)
+    car_offset, final_image = imageProcessor.process_image(frame)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
         a = pickle.dumps(final_image)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
+
+    motorHandler.guide_robot_sides(car_offset)
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
 
