@@ -61,7 +61,7 @@ def process_raspberry_video():
         if allow_guide:
             car_offset, frame_processed = imageProcessor.process_image(image)
             if frame_processed is not None:
-                frame = frame
+                image = frame_processed
                 # motor_handler.guide_robot(car_offset)
 
         # Enviamos el video procesado a traves del socket
