@@ -3,96 +3,96 @@ import RPi.GPIO as GPIO
 import Utils
 import time
 
-# L298N pines <> GPIO pines
-IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 
-# mr_robot = Robot(left=(IN1, IN2), right=(IN3, IN4))
-# Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 5 cm a la derecha o a la izquierda
-safety_zone_range = 0.05
-# driving = False
+# # mr_robot = Robot(left=(IN1, IN2), right=(IN3, IN4))
+# # Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 5 cm a la derecha o a la izquierda
+# safety_zone_range = 0.05
+# # driving = False
+#
+# # L298N pines <> GPIO pines
+# IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 
-IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(IN1, GPIO.OUT)
-GPIO.setup(IN2, GPIO.OUT)
-GPIO.setup(IN3, GPIO.OUT)
-GPIO.setup(IN4, GPIO.OUT)
-GPIO.setup(EN, GPIO.OUT)
-GPIO.output(IN1, GPIO.LOW)
-GPIO.output(IN2, GPIO.LOW)
-GPIO.output(IN3, GPIO.LOW)
-GPIO.output(IN4, GPIO.LOW)
+class MotorHandler:
 
-p = GPIO.PWM(EN, 1000)
+    def __init__(self, IN1, IN2, IN3, IN4, EN):
+        self.IN1, self.IN2, self.IN3, self.IN4, self.EN = IN1, IN2, IN3, IN4, EN
 
-p.start(25)
+        self.safety_zone_range = 0.05
+
+        self.driving = False
+
+    def setup_motors(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.IN1, GPIO.OUT)
+        GPIO.setup(self.IN2, GPIO.OUT)
+        GPIO.setup(self.IN3, GPIO.OUT)
+        GPIO.setup(self.IN4, GPIO.OUT)
+        GPIO.setup(self.EN, GPIO.OUT)
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.LOW)
+
+        p = GPIO.PWM(self.EN, 1000)
+
+        p.start(25)
+
+    def go_left(self, speed, center_offset):
+        print("Moviéndose hacia la izquierda [{:0.2f}] ".format(center_offset))
+        GPIO.output(self.IN1, GPIO.HIGH)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.LOW)
+        time.sleep(0.5)
+        self.driving = False
+
+    def go_right(self, speed, center_offset):
+        print("Moviéndose hacia la derecha [{:0.2f}] ".format(center_offset))
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.HIGH)
+        GPIO.output(self.IN4, GPIO.LOW)
+        time.sleep(0.5)
+        self.driving = False
+
+    def go_straigth(self, speed, center_offset):
+        print("Moviéndose hacia delante (recto) [{:0.2f}] ".format(center_offset))
+        GPIO.output(self.IN1, GPIO.HIGH)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.HIGH)
+        GPIO.output(self.IN4, GPIO.LOW)
+        time.sleep(1)
+        self.driving = False
+
+    def stop(self):
+        print("Deteniendo el robot")
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.driving = False
+
+    def guide_robot(self, center_offset):
+        if not self.driving:
+            self.driving = True
+            if center_offset > self.safety_zone_range:
+                self.go_left(0.3, center_offset)
+            elif center_offset < (- self.safety_zone_range):
+                self.go_right(0.3, center_offset)
+            else:
+                self.go_straigth(0.3, center_offset)
+
+    # def shutdown_motor(self):
+    #     # global driving
+    #     # mr_robot.stop()
+    #     print("Apagando el motor del robot")
+
 
 def guide_robot_sides(center_offset):
-    if center_offset > safety_zone_range:
-        go_left(0.3, center_offset)
-    elif center_offset < (- safety_zone_range):
-        go_right(0.3, center_offset)
-    else:
-        go_straigth(0.3, center_offset)
+    # L298N pines <> GPIO pines
+    IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 
+    motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
+    motor_handler.guide_robot(center_offset)
 
-def go_left(speed, center_offset):
-    # global driving
-    # driving = True
-    # mr_robot.left(speed)
-    print("Moviéndose hacia la izquierda [{:0.2f}] ".format(center_offset))
-    GPIO.output(IN1,GPIO.HIGH)
-    GPIO.output(IN2,GPIO.LOW)
-    GPIO.output(IN3,GPIO.LOW)
-    GPIO.output(IN4,GPIO.LOW)
-    time.sleep(0.5)
-    # time.sleep(0.2)
-    # driving = False
-
-
-def go_right(speed, center_offset):
-    # global driving
-    # driving = True
-    # mr_robot.right(speed)
-    print("Moviéndose hacia la derecha [{:0.2f}] ".format(center_offset))
-    GPIO.output(IN1,GPIO.LOW)
-    GPIO.output(IN2,GPIO.LOW)
-    GPIO.output(IN3,GPIO.HIGH)
-    GPIO.output(IN4,GPIO.LOW)
-    time.sleep(0.5)
-    # time.sleep(0.2)
-    # driving = False
-
-
-def go_straigth(speed, center_offset):
-    # global driving
-    # driving = True
-    # mr_robot.forward()
-    print("Moviéndose hacia delante (recto) [{:0.2f}] ".format(center_offset))
-    GPIO.output(IN1,GPIO.HIGH)
-    GPIO.output(IN2,GPIO.LOW)
-    GPIO.output(IN3,GPIO.HIGH)
-    GPIO.output(IN4,GPIO.LOW)
-    time.sleep(1)
-    # time.sleep(0.2)
-    # driving = False
-
-
-def stop():
-    # global driving
-    # driving = True
-    # mr_robot.stop()
-    GPIO.output(IN1,GPIO.LOW)
-    GPIO.output(IN2,GPIO.LOW)
-    GPIO.output(IN3,GPIO.LOW)
-    GPIO.output(IN4,GPIO.LOW)
-    print("Deteniendo el robot")
-    # time.sleep(0.2)
-    # driving = False
-
-
-def shutdown_motor():
-    # global driving
-    # mr_robot.stop()
-    print("Apagando el motor del robot")
