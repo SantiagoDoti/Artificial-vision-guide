@@ -4,6 +4,8 @@ import cv2
 import time
 import struct
 import imageProcessor
+from threading import Thread
+
 # from motorHandler import MotorHandler
 
 # L298N pines <> GPIO pines
@@ -24,58 +26,69 @@ allow_guide = True
 video = cv2.VideoCapture(0)
 time.sleep(0.1)
 
+
 # Creamos el socket para luego enviarle las imágenes
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_name = socket.gethostname()
-host_ip = socket.gethostbyname(host_name)
-print("HOST IP: ", host_ip)
-port = 9999
-socket_address = (host_ip, port)
-server_socket.bind(socket_address)
+def create_server_socket():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    host_name = socket.gethostname()
+    host_ip = socket.gethostbyname(host_name)
+    print("HOST IP: ", host_ip)
+    port = 9999
+    socket_address = (host_ip, port)
+    server_socket.bind(socket_address)
 
-server_socket.listen(5)
-print("ESCUCHANDO EN: ", socket_address)
+    server_socket.listen(5)
+    print("ESCUCHANDO EN: ", socket_address)
 
-client_socket, addr = server_socket.accept()
-print('OBTENIENDO CONEXIÓN DESDE: ', addr)
+    client_socket, addr = server_socket.accept()
+    print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 
-while True:
-    flag, frame = video.read()
+    return server_socket, client_socket
 
-    # instruction_input = input()
-    #
-    # if instruction_input == "r":
-    #     print(" ----------- DIRECCIÓN DEL ROBOT HABILITADA ----------- ")
-    #     allow_guide = True
-    # elif instruction_input == "s":
-    #     print(" ----------- DIRECCIÓN DEL ROBOT DESHABILITADA ----------- ")
-    #     allow_guide = False
 
-    # Loop video pregrabado
-    # if not flag:
-    #     video = cv2.VideoCapture(video_path)
-    #     continue
+def interpret_user_input():
+    global allow_guide
+    user_input = input("Escriba el comando deseado: ")
+    if user_input.lower() == "r":
+        print(" ----------- DIRECCION DEL ROBOT HABILITADA ----------- ")
+        allow_guide = True
+    elif user_input.lower() == "s":
+        print(" ----------- DIRECCION DEL ROBOT DESHABILITADA ----------- ")
+        allow_guide = False
 
-    if allow_guide:
-        car_offset, frame_processed = imageProcessor.process_image(frame)
-        if frame_processed is not None:
-            frame = frame_processed
-        # if car_offset is not None:
-        #     motor_handler.guide_robot(car_offset)
 
-    # Enviamos el video procesado a traves del socket
-    if client_socket:
-        a = pickle.dumps(frame)
-        message = struct.pack("Q", len(a)) + a
-        client_socket.sendall(message)
+def process_common_camera_video():
+    while True:
+        flag, frame = video.read()
 
-    # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
+        # Loop video pregrabado
+        # if not flag:
+        #     video = cv2.VideoCapture(video_path)
+        #     continue
 
-    if cv2.waitKey(10) == 27:
-        break
+        if allow_guide:
+            car_offset, frame_processed = imageProcessor.process_image(frame)
+            if frame_processed is not None:
+                frame = frame_processed
+            # if car_offset is not None:
+            #     motor_handler.guide_robot(car_offset)
 
-# motor_handler.stop()
-server_socket.close()
-video.release()
-cv2.destroyAllWindows()
+        # Enviamos el video procesado a traves del socket
+        if client_socket:
+            a = pickle.dumps(frame)
+            message = struct.pack("Q", len(a)) + a
+            client_socket.sendall(message)
 
+        # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
+
+        if cv2.waitKey(10) == 27:
+            break
+
+    # motor_handler.stop()
+    server_socket.close()
+    video.release()
+    cv2.destroyAllWindows()
+
+
+server_socket, client_socket = create_server_socket()
+process_common_camera_video()

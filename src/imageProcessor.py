@@ -697,5 +697,5 @@ def process_image(frame):
 
         return robot_offset, frame_with_info
     else:
-        print("No se detectaron lineas iniciales. Se evito un crash")
+        # print("No se detectaron lineas iniciales. Se evito un crash")
         return None, None
