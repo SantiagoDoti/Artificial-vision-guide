@@ -11,46 +11,20 @@ IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 safety_zone_range = 0.05
 # driving = False
 
+IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(IN1, GPIO.OUT)
 GPIO.setup(IN2, GPIO.OUT)
 GPIO.setup(IN3, GPIO.OUT)
 GPIO.setup(IN4, GPIO.OUT)
 GPIO.setup(EN, GPIO.OUT)
-GPIO.output(IN1,GPIO.LOW)
-GPIO.output(IN2,GPIO.LOW)
-GPIO.output(IN3,GPIO.LOW)
-GPIO.output(IN4,GPIO.LOW)
+GPIO.output(IN1, GPIO.LOW)
+GPIO.output(IN2, GPIO.LOW)
+GPIO.output(IN3, GPIO.LOW)
+GPIO.output(IN4, GPIO.LOW)
 
-# 
-# # Control del motor de dirección
-# GPIO.output(IN1, GPIO.HIGH)
-# GPIO.output(IN2, GPIO.LOW)
-# steering = GPIO.PWM(EN, 1000)
-# steering.stop()
-# 
-# # Control de motores de aceleración
-# GPIO.output(IN3, GPIO.HIGH)
-# GPIO.output(IN4, GPIO.LOW)
-# throttle = GPIO.PWM(EN, 1000)
-# throttle.stop()
-
-# time.sleep(1)
-# 
-# throttle.start(25)
-# steering.start(100)
-# 
-# time.sleep(3)
-# 
-# throttle.stop()
-# steering.stop()
-
-# GPIO.output(IN1,GPIO.LOW)
-# GPIO.output(IN2,GPIO.LOW)
-# GPIO.output(IN3,GPIO.LOW)
-# GPIO.output(IN4,GPIO.LOW)
-
-p=GPIO.PWM(EN,1000)
+p = GPIO.PWM(EN, 1000)
 
 p.start(25)
 
@@ -67,10 +41,12 @@ def go_left(speed, center_offset):
     # global driving
     # driving = True
     # mr_robot.left(speed)
-    GPIO.output(IN1, GPIO.HIGH)
-    GPIO.output(IN2, GPIO.LOW)
-#     steering.start(100)
     print("Moviéndose hacia la izquierda [{:0.2f}] ".format(center_offset))
+    GPIO.output(IN1,GPIO.HIGH)
+    GPIO.output(IN2,GPIO.LOW)
+    GPIO.output(IN3,GPIO.LOW)
+    GPIO.output(IN4,GPIO.LOW)
+    time.sleep(0.5)
     # time.sleep(0.2)
     # driving = False
 
@@ -79,10 +55,12 @@ def go_right(speed, center_offset):
     # global driving
     # driving = True
     # mr_robot.right(speed)
-    GPIO.output(IN1, GPIO.LOW)
-    GPIO.output(IN2, GPIO.HIGH)
-#     steering.start(100)
     print("Moviéndose hacia la derecha [{:0.2f}] ".format(center_offset))
+    GPIO.output(IN1,GPIO.LOW)
+    GPIO.output(IN2,GPIO.LOW)
+    GPIO.output(IN3,GPIO.HIGH)
+    GPIO.output(IN4,GPIO.LOW)
+    time.sleep(0.5)
     # time.sleep(0.2)
     # driving = False
 
@@ -91,9 +69,12 @@ def go_straigth(speed, center_offset):
     # global driving
     # driving = True
     # mr_robot.forward()
-    GPIO.output(IN1, GPIO.LOW)
-    GPIO.output(IN2, GPIO.LOW)
     print("Moviéndose hacia delante (recto) [{:0.2f}] ".format(center_offset))
+    GPIO.output(IN1,GPIO.HIGH)
+    GPIO.output(IN2,GPIO.LOW)
+    GPIO.output(IN3,GPIO.HIGH)
+    GPIO.output(IN4,GPIO.LOW)
+    time.sleep(1)
     # time.sleep(0.2)
     # driving = False
 
