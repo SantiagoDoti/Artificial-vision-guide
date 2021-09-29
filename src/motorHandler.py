@@ -89,10 +89,10 @@ class MotorHandler:
     #     print("Apagando el motor del robot")
 
 
-def guide_robot_sides(center_offset):
-    # L298N pines <> GPIO pines
-    IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
-
-    motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
-    motor_handler.guide_robot(center_offset)
+# def guide_robot_sides(center_offset):
+#     # L298N pines <> GPIO pines
+#     IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
+#
+#     motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
+#     guide_robot(center_offset)
 

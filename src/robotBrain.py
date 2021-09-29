@@ -9,6 +9,10 @@ import motorHandler
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
+# L298N pines <> GPIO pines
+IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
+motor_handler = motorHandler.MotorHandler(IN1, IN2, IN3, IN4, EN)
+
 # Video en vivo de la Raspberry Pi Camera
 camera = PiCamera()
 camera.resolution = (720, 480)
@@ -44,13 +48,13 @@ for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
 
-    motorHandler.guide_robot_sides(car_offset)
+    motor_handler.guide_robot(car_offset)
 
     raw_capture.truncate(0)
 
     if cv2.waitKey(10) == 27:
         break
     
-motorHandler.stop()
+motor_handler.stop()
 server_socket.close()
 cv2.destroyAllWindows()
