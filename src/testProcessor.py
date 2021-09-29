@@ -4,12 +4,12 @@ import cv2
 import time
 import struct
 import imageProcessor
-from motorHandler import MotorHandler
+# from motorHandler import MotorHandler
 
 # L298N pines <> GPIO pines
 IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
-motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
-allow_guide = False
+# motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
+allow_guide = True
 
 # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
 # initial_trackbar_vals = [186, 161, 57, 262]
@@ -42,14 +42,14 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 while True:
     flag, frame = video.read()
 
-    instruction_input = input()
-
-    if instruction_input == "r":
-        print(" ----------- DIRECCIÓN DEL ROBOT HABILITADA ----------- ")
-        allow_guide = True
-    elif instruction_input == "s":
-        print(" ----------- DIRECCIÓN DEL ROBOT DESHABILITADA ----------- ")
-        allow_guide = False
+    # instruction_input = input()
+    #
+    # if instruction_input == "r":
+    #     print(" ----------- DIRECCIÓN DEL ROBOT HABILITADA ----------- ")
+    #     allow_guide = True
+    # elif instruction_input == "s":
+    #     print(" ----------- DIRECCIÓN DEL ROBOT DESHABILITADA ----------- ")
+    #     allow_guide = False
 
     # Loop video pregrabado
     # if not flag:
@@ -57,8 +57,11 @@ while True:
     #     continue
 
     if allow_guide:
-        car_offset, frame = imageProcessor.process_image(frame)
-        motor_handler.guide_robot(car_offset)
+        car_offset, frame_processed = imageProcessor.process_image(frame)
+        if frame_processed is not None:
+            frame = frame_processed
+        # if car_offset is not None:
+        #     motor_handler.guide_robot(car_offset)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
@@ -71,7 +74,7 @@ while True:
     if cv2.waitKey(10) == 27:
         break
 
-motor_handler.stop()
+# motor_handler.stop()
 server_socket.close()
 video.release()
 cv2.destroyAllWindows()

@@ -21,6 +21,7 @@ class MotorHandler:
         self.safety_zone_range = 0.05
 
         self.driving = False
+        self.setup_motors()
 
     def setup_motors(self):
         GPIO.setmode(GPIO.BCM)

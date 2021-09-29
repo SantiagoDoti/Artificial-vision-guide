@@ -562,8 +562,11 @@ class ImageProcessor:
         #     left_fit = prev_left_fit
         #     right_fit = prev_right_fit
         # else:
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
+        if lefty is not None or leftx is not None:
+            left_fit = np.polyfit(lefty, leftx, 2)
+            right_fit = np.polyfit(righty, rightx, 2)
+        else:
+            return None, None
 
         # Sumamos los últimos coeficientes del polinomio
         prev_left_fit.append(left_fit)
@@ -675,15 +678,16 @@ def process_image(frame):
 
     left_fit, right_fit = image_processor.get_lane_line_indices_sliding_windows(plot=False)
 
-    image_processor.get_lane_line_previous_window(left_fit, right_fit, plot=False)
+    if left_fit is not None or right_fit is not None:
+        image_processor.get_lane_line_previous_window(left_fit, right_fit, plot=False)
 
-    frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
+        frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
 
-    image_processor.calculate_curvature()
+        image_processor.calculate_curvature()
 
-    robot_offset = image_processor.calculate_car_position()
+        robot_offset = image_processor.calculate_car_position()
 
-    frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
+        frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
 
     # cv2.imshow("Imagen original", lane_line_markings)
     # cv2.imshow("Imagen deformada", warped_image)
@@ -691,4 +695,7 @@ def process_image(frame):
     # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
     # cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
 
-    return robot_offset, frame_with_info
+        return robot_offset, frame_with_info
+    else:
+        print("No se detectaron lineas iniciales. Se evito un crash")
+        return None, None
