@@ -4,7 +4,12 @@ import cv2
 import time
 import struct
 import imageProcessor
-import motorHandler
+from motorHandler import MotorHandler
+
+# L298N pines <> GPIO pines
+IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
+motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
+allow_guide = False
 
 # Posiciones iniciales de los tracbarks de los warped points para visualizarlos en pantalla
 # initial_trackbar_vals = [186, 161, 57, 262]
@@ -37,26 +42,36 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 while True:
     flag, frame = video.read()
 
+    instruction_input = input()
+
+    if instruction_input == "r":
+        print(" ----------- DIRECCIÓN DEL ROBOT HABILITADA ----------- ")
+        allow_guide = True
+    elif instruction_input == "s":
+        print(" ----------- DIRECCIÓN DEL ROBOT DESHABILITADA ----------- ")
+        allow_guide = False
+
     # Loop video pregrabado
     # if not flag:
     #     video = cv2.VideoCapture(video_path)
     #     continue
 
-    car_offset, final_image = imageProcessor.process_image(frame)
+    if allow_guide:
+        car_offset, frame = imageProcessor.process_image(frame)
+        motor_handler.guide_robot(car_offset)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
-        a = pickle.dumps(final_image)
+        a = pickle.dumps(frame)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
-
-    motorHandler.guide_robot_sides(car_offset)
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
 
     if cv2.waitKey(10) == 27:
         break
 
+motor_handler.stop()
 server_socket.close()
 video.release()
 cv2.destroyAllWindows()

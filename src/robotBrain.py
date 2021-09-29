@@ -12,6 +12,7 @@ from picamera import PiCamera
 # L298N pines <> GPIO pines
 IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
+allow_guide = False
 
 # Video en vivo de la Raspberry Pi Camera
 camera = PiCamera()
@@ -38,17 +39,26 @@ print('OBTENIENDO CONEXIÓN DESDE: ', addr)
 for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
     image = frame.array
 
-    car_offset, final_image = imageProcessor.process_image(image)
+    instruction_input = input()
+
+    if instruction_input == "r":
+        print(" ----------- DIRECCIÓN DEL ROBOT HABILITADA ----------- ")
+        allow_guide = True
+    elif instruction_input == "s":
+        print(" ----------- DIRECCIÓN DEL ROBOT DESHABILITADA ----------- ")
+        allow_guide = False
+
+    if allow_guide:
+        car_offset, image = imageProcessor.process_image(image)
+        motor_handler.guide_robot(car_offset)
 
     # Enviamos el video procesado a traves del socket
     if client_socket:
-        a = pickle.dumps(final_image)
+        a = pickle.dumps(image)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
 
     # cv2.imshow("Imagen con curvatura y desplazamiento", final_image)
-
-    motor_handler.guide_robot(car_offset)
 
     raw_capture.truncate(0)
 
