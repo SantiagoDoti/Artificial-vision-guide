@@ -5,13 +5,13 @@ import time
 import struct
 import imageProcessor
 import Utils
-import motorHandler
+from motorHandler import MotorHandler
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 # L298N pines <> GPIO pines
 IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
-motor_handler = motorHandler.MotorHandler(IN1, IN2, IN3, IN4, EN)
+motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
 
 # Video en vivo de la Raspberry Pi Camera
 camera = PiCamera()
