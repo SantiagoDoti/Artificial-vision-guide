@@ -37,7 +37,7 @@ class MotorHandler:
 
         p = GPIO.PWM(self.EN, 1000)
 
-        p.start(25)
+        p.start(10)
 
     def go_left(self, speed, center_offset):
         print("Moviéndose hacia la izquierda [{:0.2f}] ".format(center_offset))
@@ -45,8 +45,9 @@ class MotorHandler:
         GPIO.output(self.IN2, GPIO.LOW)
         GPIO.output(self.IN3, GPIO.LOW)
         GPIO.output(self.IN4, GPIO.LOW)
-        time.sleep(0.5)
+        time.sleep(0.2)
         self.driving = False
+        self.stop()
 
     def go_right(self, speed, center_offset):
         print("Moviéndose hacia la derecha [{:0.2f}] ".format(center_offset))
@@ -54,8 +55,9 @@ class MotorHandler:
         GPIO.output(self.IN2, GPIO.LOW)
         GPIO.output(self.IN3, GPIO.HIGH)
         GPIO.output(self.IN4, GPIO.LOW)
-        time.sleep(0.5)
+        time.sleep(0.2)
         self.driving = False
+        self.stop()
 
     def go_straigth(self, speed, center_offset):
         print("Moviéndose hacia delante (recto) [{:0.2f}] ".format(center_offset))
@@ -63,8 +65,9 @@ class MotorHandler:
         GPIO.output(self.IN2, GPIO.LOW)
         GPIO.output(self.IN3, GPIO.HIGH)
         GPIO.output(self.IN4, GPIO.LOW)
-        time.sleep(1)
+        time.sleep(0.2)
         self.driving = False
+        self.stop()
 
     def stop(self):
         print("Deteniendo el robot")
@@ -72,6 +75,7 @@ class MotorHandler:
         GPIO.output(self.IN2, GPIO.LOW)
         GPIO.output(self.IN3, GPIO.LOW)
         GPIO.output(self.IN4, GPIO.LOW)
+        time.sleep(0.5)
         self.driving = False
 
     def guide_robot(self, center_offset):

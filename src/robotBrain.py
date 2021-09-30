@@ -12,7 +12,7 @@ from picamera import PiCamera
 # L298N pines <> GPIO pines
 IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
-allow_guide = False
+allow_guide = True
 
 
 # Video en vivo de la Raspberry Pi Camera
@@ -43,6 +43,12 @@ def create_server_socket():
     return server_socket, client_socket
 
 
+def shutdown_secure():
+    motor_handler.stop()
+    raspberry_server_socket.close()
+    cv2.destroyAllWindows()
+
+
 def interpret_user_input():
     global allow_guide
     user_input = input("Escriba el comando deseado: ")
@@ -62,7 +68,7 @@ def process_raspberry_video():
             car_offset, frame_processed = imageProcessor.process_image(image)
             if frame_processed is not None:
                 image = frame_processed
-                # motor_handler.guide_robot(car_offset)
+                motor_handler.guide_robot(car_offset)
 
         # Enviamos el video procesado a traves del socket
         if pc_client_socket:
@@ -76,12 +82,14 @@ def process_raspberry_video():
 
         if cv2.waitKey(10) == 27:
             break
-    motor_handler.stop()
-    raspberry_server_socket.close()
-    cv2.destroyAllWindows()
+    shutdown_secure()
 
 
-raspberry_server_socket, pc_client_socket = create_server_socket()
-raspberry_pi_camera, raspberry_raw_capture = setup_raspberry_camera()
-process_raspberry_video()
+try:
+    raspberry_server_socket, pc_client_socket = create_server_socket()
+    raspberry_pi_camera, raspberry_raw_capture = setup_raspberry_camera()
+    process_raspberry_video()
+except KeyboardInterrupt:
+    shutdown_secure()
+
 
