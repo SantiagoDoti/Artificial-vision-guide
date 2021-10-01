@@ -689,11 +689,11 @@ def process_image(frame):
 
         frame_with_info = image_processor.display_curvature_offset(frame=frame_lane_lines)
 
-    # cv2.imshow("Imagen original", lane_line_markings)
-    # cv2.imshow("Imagen deformada", warped_image)
-    # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
-    # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
-    # cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
+        # cv2.imshow("Imagen original", lane_line_markings)
+        # cv2.imshow("Imagen deformada", warped_image)
+        # cv2.imshow("Imagen con puntos de deforme", desired_roi_points_marked)
+        # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
+        # cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
 
         return robot_offset, frame_with_info
     else:

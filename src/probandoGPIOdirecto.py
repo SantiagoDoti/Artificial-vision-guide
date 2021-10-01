@@ -34,7 +34,7 @@ def set_motorB_speed(val):
 
 
 def forward():
-    print("Hacia delante")
+#     print("Hacia delante")
     GPIO.output(IN1, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
     GPIO.output(IN3, GPIO.LOW)
@@ -47,15 +47,21 @@ def finish():
 
 speed_right, speed_left, setback = 0, 0, 0
 
-for X in [-10, -5, -1, 5, 10]:
-    numero = X
+while True:
+    numero = 0
 
-    if numero > 0:
+    if numero == 0:
+        speed_right = -1 * initial_speed
+        speed_left = -1 * initial_speed
+    elif numero > 0:
         speed_right = 10
         speed_left = -1 * initial_speed
     elif numero < 0:
         speed_left = 10
         speed_right = -1 * initial_speed
+
+    speed_right = 0
+    speed_left = 30
 
     set_motorA_speed(speed_right)
     set_motorB_speed(speed_left)
