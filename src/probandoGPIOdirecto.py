@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 
-ENA, IN1, IN2, ENB, IN3, IN4, = 12, 27, 22, 20, 23, 24
+ENA, IN1, IN2, ENB, IN3, IN4, = 12, 27, 22, 26, 23, 24
 
 initial_speed = 30
 
