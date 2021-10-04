@@ -98,15 +98,17 @@ class ImageProcessor:
         #     (255, 625), (533, 472), (742, 472), (1025, 625)
         # ])
 
-        # Raspberry Pi Camera
+        # Raspberry Pi Camera (320 x 240)
+        self.roi_points = np.float32([(0, height), (60, 120),  (260, 120), (320, 240)])
+        self.desired_roi_points = np.array([[[60, 240], [60, 0], [260, 0], [260, 240]]], np.float32)
         # self.roi_points = np.float32([
         #     (0, height), (120, height / 3), (600, height / 3), (width, height)
         # ])
         # self.desired_roi_points = np.array([[186, 161], [57, 262], [583, 262], [454, 161]], np.float32)
 
         # Cámara de la PC (640 x 480)
-        self.roi_points = np.float32([(0, height), (120, 200), (520, 200), (width, height)])
-        self.desired_roi_points = np.array([[170, 480], [170, 0], [510, 0], [510, 480]], np.float32)
+        # self.roi_points = np.float32([(0, height), (120, 200), (520, 200), (width, height)])
+        # self.desired_roi_points = np.array([[170, 480], [170, 0], [510, 0], [510, 480]], np.float32)
 
         # Histograma que muestra los picos de pixeles blancos en la detección de carriles
         self.histogram = None
@@ -698,4 +700,4 @@ def process_image(frame):
         return robot_offset, left_curve, right_curve, frame_with_info
     else:
         # print("No se detectaron lineas iniciales. Se evito un crash")
-        return None, None
+        return None, None, None, None
