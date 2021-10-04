@@ -1,18 +1,18 @@
 import numpy as np
 import cv2
 import socket
-import pcDataSender
 import imageProcessor
-from motorHandler import MotorHandler
 
-# L298N pines <> GPIO pines
-IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
-motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
 
-ser_soc = socket.socket()
-ser_soc.bind(('192.168.1.70', 5500))
-ser_soc.listen(2)
-conn, addres = ser_soc.accept()
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host_name = socket.gethostname()
+socket_address = ('192.168.1.33', 5500)
+server_socket.bind(socket_address)
+
+server_socket.listen(5)
+print("ESCUCHANDO EN: ", socket_address)
+
+conn, address = server_socket.accept()
 
 
 def server_program(data):
@@ -36,7 +36,7 @@ class VideoStreaming(object):
         try:
             print("Host: ", self.host_name + " " + self.host_ip)
             print("Obteniendo conexión desde: ", self.client_address)
-            print("Enviando video..")
+            print("Streaming..")
             print("[Apretar Q en cualquier momento para salir]")
 
             stream_bytes = b' '
@@ -57,28 +57,21 @@ class VideoStreaming(object):
                         # self.send_info_back(car_offset, left_curve, right_curve)
                         # motor_handler.guide_robot(car_offset)
                     else:
-                        server_program(car_offset)
+                        server_program(0)
                         # self.send_info_back(0, 0, 0)
 
                     cv2.imshow("Imagen con curvatura y desplazamiento", lane_image)
 
                     if cv2.waitKey(10) == 27:
-                        pcDataSender.tcp_close()
                         break
         finally:
             self.connection.close()
             self.server_socket.close()
 
-    def send_info_back(self, offset, left, right):
-        D = b''
-        D += bytes([offset, left, right])
-        print("Enviamos información de vuelta", D)
-        pcDataSender.tcp_write(D)
-
 
 if __name__ == '__main__':
     # host, puerto
-    host, port = "192.168.1.70", 8000
+    host, port = "192.168.1.33", 8000
     VideoStreaming(host, port)
 
 cv2.destroyAllWindows()
