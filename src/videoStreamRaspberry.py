@@ -2,7 +2,7 @@ import io
 import socket
 import struct
 import time
-from picamera import PiCamera
+import picamera
 
 
 # Creamos el socket para luego enviarle las imágenes en crudo
@@ -15,10 +15,10 @@ def create_socket():
 
 def capture_raspberry_video(raspberry_connection):
     try:
-        with picamera.Picamera() as raspberry_pi_camera:
-            raspberry_pi_camera.resolution = (720, 480)
-            raspberry_pi_camera.framerate = 32
-            time.sleep(1)
+        with picamera.PiCamera() as raspberry_pi_camera:
+            raspberry_pi_camera.resolution = (320, 240)
+            raspberry_pi_camera.framerate = 15
+            time.sleep(2)
             start = time.time()
             stream = io.BytesIO()
 
@@ -28,10 +28,13 @@ def capture_raspberry_video(raspberry_connection):
                 raspberry_connection.flush()
                 stream.seek(0)
                 raspberry_connection.write(stream.read())
+                if time.time() - start > 600:
+                    break
                 stream.seek(0)
                 stream.truncate()
 
             raspberry_connection.write(struct.pack("<L, 0"))
+
     except socket.error as e:
         print(e)
     finally:

@@ -9,6 +9,16 @@ from motorHandler import MotorHandler
 IN1, IN2, IN3, IN4, EN = 27, 22, 23, 24, 25
 motor_handler = MotorHandler(IN1, IN2, IN3, IN4, EN)
 
+ser_soc = socket.socket()
+ser_soc.bind(('192.168.1.70', 5500))
+ser_soc.listen(2)
+conn, addres = ser_soc.accept()
+
+
+def server_program(data):
+    data = str(data)
+    conn.send(data.encode())
+
 
 class VideoStreaming(object):
 
@@ -31,7 +41,7 @@ class VideoStreaming(object):
 
             stream_bytes = b' '
             while True:
-                stream_bytes += self.connection.read(1024 * 4)
+                stream_bytes += self.connection.read(1024)
                 first_byte = stream_bytes.find(b'\xff\xd8')
                 last_byte = stream_bytes.find(b'\xff\xd9')
                 if first_byte != -1 and last_byte != -1:
@@ -43,10 +53,12 @@ class VideoStreaming(object):
                     car_offset, left_curve, right_curve, frame_processed = imageProcessor.process_image(lane_image)
                     if frame_processed is not None:
                         lane_image = frame_processed
-                        self.send_info_back(car_offset, left_curve, right_curve)
+                        server_program(car_offset)
+                        # self.send_info_back(car_offset, left_curve, right_curve)
                         # motor_handler.guide_robot(car_offset)
                     else:
-                        self.send_info_back(0, 0, 0)
+                        server_program(car_offset)
+                        # self.send_info_back(0, 0, 0)
 
                     cv2.imshow("Imagen con curvatura y desplazamiento", lane_image)
 
@@ -66,7 +78,7 @@ class VideoStreaming(object):
 
 if __name__ == '__main__':
     # host, puerto
-    host, port = "192.168.1.70", 8000   # IP de la Raspberry en la red local
+    host, port = "192.168.1.70", 8000
     VideoStreaming(host, port)
 
 cv2.destroyAllWindows()
