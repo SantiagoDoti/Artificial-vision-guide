@@ -9,16 +9,19 @@ safety_zone_range = 0.05
 def client_program():
     client_socket = socket.socket()
     client_socket.connect(('192.168.1.33', 5500))
+    
+    driving = False
+    speed_motorA, speed_motorB = 0, 0
 
     while True:
         data = client_socket.recv(1024).decode()
 
         try:
             robot_offset = float(data)
+            print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm')
         except ValueError:
-            robot_offset = 0
+            robot_offset = None
 #             print("Valor fuera del rango, error al parsearlo")
-        print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm')
 
 
         # left_curve = dat[1]
@@ -27,25 +30,26 @@ def client_program():
         # print('Radio izquierdo: ' + '{:04.0f}'.format(left_curve) + ' m')
         # print('Radio derecho: ' + '{:04.0f}'.format(right_curve) + ' m')
 
-        speed_motorA, speed_motorB = 0, 0
+        if robot_offset is not None and driving is False:
+            driving = True
+            if robot_offset == 0:  # Detenerse
+                print("Detenerse")
+                speed_motorA = -1 * initial_speed
+                speed_motorB = -1 * initial_speed
+            elif robot_offset > safety_zone_range:  # Moverse a la izquierda
+                print("IZQUIERDA")
+                speed_motorA = 10
+                speed_motorB = -1 * initial_speed
+            elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
+                print("DERECHA")
+                speed_motorA = 10
+                speed_motorB = -1 * initial_speed
 
-        if robot_offset == 0:  # Detenerse
-            print("Detenerse")
-            speed_motorA = -1 * initial_speed
-            speed_motorB = -1 * initial_speed
-        elif robot_offset > safety_zone_range:  # Moverse a la izquierda
-            print("IZQUIERDA")
-            speed_motorA = 10
-            speed_motorB = -1 * initial_speed
-        elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
-            print("DERECHA")
-            speed_motorA = 10
-            speed_motorB = -1 * initial_speed
-
-        set_motorA_speed(speed_motorA)
-        set_motorB_speed(speed_motorB)
-        forward()
-        sleep(0.2)
+            set_motorA_speed(speed_motorA)
+            set_motorB_speed(speed_motorB)
+            forward()
+            sleep(3)
+            driving = False
 
     client_socket.close()
 
