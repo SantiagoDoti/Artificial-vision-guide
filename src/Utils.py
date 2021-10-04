@@ -64,30 +64,3 @@ wT, hT = 640, 480
 # wT, hT = 960, 540
 # wT, hT = 1280, 720
 
-
-def stop(image):
-    # set_robot_speed(0)
-    # set_robot_direction("detenido", 0)
-    print_info_text(image, 0, 0)
-    print("Stop - Frenando")
-
-
-def go_straigth(speed, image):
-    # set_robot_speed(speed)
-    # set_robot_direction("recto", 3)
-    print_info_text(image, 1, speed)
-    print("Forward - Hacia delante")
-
-
-def go_left(speed, image):
-    # set_robot_speed(speed)
-    # set_robot_direction("izquierda", 1)
-    print_info_text(image, 2, speed)
-    print("Left - Hacia la izquierda")
-
-
-def go_right(speed, image):
-    # set_robot_speed(speed)
-    # set_robot_direction("derecha", 2)
-    print_info_text(image, 3, speed)
-    print("Right - Hacia la derecha")
