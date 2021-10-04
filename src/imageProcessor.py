@@ -683,7 +683,7 @@ def process_image(frame):
 
         frame_lane_lines = image_processor.overlay_lane_lines(plot=False)
 
-        image_processor.calculate_curvature()
+        left_curve, right_curve = image_processor.calculate_curvature()
 
         robot_offset = image_processor.calculate_car_position()
 
@@ -695,7 +695,7 @@ def process_image(frame):
         # cv2.imshow("Imagen con trayecto dibujado ", frame_lane_lines)
         # cv2.imshow("Imagen con curvatura y desplazamiento", frame_with_info)
 
-        return robot_offset, frame_with_info
+        return robot_offset, left_curve, right_curve, frame_with_info
     else:
         # print("No se detectaron lineas iniciales. Se evito un crash")
         return None, None
