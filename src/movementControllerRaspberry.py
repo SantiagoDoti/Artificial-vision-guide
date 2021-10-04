@@ -13,10 +13,13 @@ def client_program():
     while True:
         data = client_socket.recv(1024).decode()
 
-        robot_offset = float(data)
-
-        print("[INFORMACIÓN RECIBIDA]")
+        try:
+            robot_offset = float(data)
+        except ValueError:
+            robot_offset = 0
+#             print("Valor fuera del rango, error al parsearlo")
         print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm')
+
 
         # left_curve = dat[1]
         # right_curve = dat[2]
@@ -27,18 +30,22 @@ def client_program():
         speed_motorA, speed_motorB = 0, 0
 
         if robot_offset == 0:  # Detenerse
+            print("Detenerse")
             speed_motorA = -1 * initial_speed
             speed_motorB = -1 * initial_speed
         elif robot_offset > safety_zone_range:  # Moverse a la izquierda
+            print("IZQUIERDA")
             speed_motorA = 10
             speed_motorB = -1 * initial_speed
         elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
+            print("DERECHA")
             speed_motorA = 10
             speed_motorB = -1 * initial_speed
 
         set_motorA_speed(speed_motorA)
         set_motorB_speed(speed_motorB)
         forward()
+        sleep(0.2)
 
     client_socket.close()
 
@@ -69,7 +76,7 @@ if __name__ == '__main__':
     # L298N pines <> GPIO pines
     ENA, IN1, IN2, ENB, IN3, IN4, = 12, 27, 22, 26, 23, 24
 
-    initial_speed = 30  # Velocidad inicial [0 - 100]
+    initial_speed = 60  # Velocidad inicial [0 - 100]
 
     # Inicialización del motor A (izquierdo)
     GPIO.setmode(GPIO.BCM)

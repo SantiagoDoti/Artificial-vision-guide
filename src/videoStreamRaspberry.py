@@ -41,7 +41,7 @@ def capture_raspberry_video(raspberry_connection):
         raspberry_connection.close()
         raspberry_socket.close()
         print("Conexión cerrada")
-
-
+    
 raspberry_socket, raspberry_connection = create_socket()
 capture_raspberry_video(raspberry_connection)
+
