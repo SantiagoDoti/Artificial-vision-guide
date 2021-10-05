@@ -3,8 +3,41 @@ from time import sleep
 import RPi.GPIO as GPIO
 
 # Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 5 cm a la derecha o a la izquierda
-safety_zone_range = 0.05
+safety_zone_range = 0.10
 
+def finish():
+    GPIO.cleanup()
+
+def set_motorA_speed(val):
+    Ap.ChangeDutyCycle(initial_speed + val)
+
+def set_motorB_speed(val):
+    Bp.ChangeDutyCycle(initial_speed + val)
+
+def forward():
+    GPIO.output(IN1, GPIO.HIGH)
+    GPIO.output(IN2, GPIO.LOW)
+    GPIO.output(IN3, GPIO.HIGH)
+    GPIO.output(IN4, GPIO.LOW)
+
+def to_left():
+    forward()
+    set_motorA_speed(30)
+    set_motorB_speed(-1 * initial_speed)
+
+def to_right():
+    forward()
+    set_motorA_speed(-1 * initial_speed)
+    set_motorB_speed(30)
+    
+def to_straight():
+    set_motorA_speed(30)
+    set_motorB_speed(30)
+    forward()
+
+def stop():
+    set_motorA_speed(-30)
+    set_motorB_speed(-30)
 
 def client_program():
     client_socket = socket.socket()
@@ -33,46 +66,25 @@ def client_program():
         if robot_offset is not None and driving is False:
             driving = True
             if robot_offset == 0:  # Detenerse
-                print("Detenerse")
-                speed_motorA = -1 * initial_speed
-                speed_motorB = -1 * initial_speed
+                print("DETENERSE")
+                stop()
+            elif robot_offset > (- safety_zone_range) and robot_offset < safety_zone_range:
+                print("DERECHO")
+                to_straight()
             elif robot_offset > safety_zone_range:  # Moverse a la izquierda
                 print("IZQUIERDA")
-                speed_motorA = 10
-                speed_motorB = -1 * initial_speed
+                to_left()
             elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
                 print("DERECHA")
-                speed_motorA = 10
-                speed_motorB = -1 * initial_speed
+                to_right()
 
-            set_motorA_speed(speed_motorA)
-            set_motorB_speed(speed_motorB)
-            forward()
-            sleep(3)
+#             set_motorA_speed(speed_motorA)
+#             set_motorB_speed(speed_motorB)
+#             forward()
+            sleep(1)
             driving = False
 
     client_socket.close()
-
-
-def set_motorA_speed(val):
-    Ap.ChangeDutyCycle(initial_speed + val)
-
-
-def set_motorB_speed(val):
-    Bp.ChangeDutyCycle(initial_speed + val)
-
-
-def forward():
-    # print("Hacia delante")
-    GPIO.output(IN1, GPIO.HIGH)
-    GPIO.output(IN2, GPIO.LOW)
-    GPIO.output(IN3, GPIO.LOW)
-    GPIO.output(IN4, GPIO.HIGH)
-
-
-def finish():
-    GPIO.cleanup()
-
 
 if __name__ == '__main__':
     GPIO.setwarnings(False)
@@ -89,7 +101,7 @@ if __name__ == '__main__':
     GPIO.setup(ENA, GPIO.OUT)
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.LOW)
-    Ap = GPIO.PWM(ENA, 1000)
+    Ap = GPIO.PWM(ENA, 500)
     Ap.start(initial_speed)
 
     # Inicialización del motor B (derecho)
@@ -98,7 +110,7 @@ if __name__ == '__main__':
     GPIO.setup(ENB, GPIO.OUT)
     GPIO.output(IN3, GPIO.LOW)
     GPIO.output(IN4, GPIO.LOW)
-    Bp = GPIO.PWM(ENB, 1000)
+    Bp = GPIO.PWM(ENB, 500)
     Bp.start(initial_speed)
 
     client_program()
