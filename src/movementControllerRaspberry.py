@@ -67,6 +67,7 @@ def client_program():
             if robot_offset == 0:  # Detenerse
                 print("DETENERSE")
                 stop()
+<<<<<<< HEAD
 #             elif 0.70 < robot_offset < -0.70:
 #                 print("ME DESVIE, NOSE QUE HACER")
 #                 stop()
@@ -80,11 +81,26 @@ def client_program():
             elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
                 print("DERECHA")
                 to_right(60)
+=======
+            elif robot_offset > (- safety_zone_range) and robot_offset < safety_zone_range:
+                print("DERECHO")
+                to_straight()
+            elif robot_offset > safety_zone_range:  # Moverse a la izquierda
+                print("IZQUIERDA")
+                to_left()
+            elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
+                print("DERECHA")
+                to_right()
+>>>>>>> 2676a25a97d6859571e2f2e7d0879efb3b0797a1
 
 #             set_motorA_speed(speed_motorA)
 #             set_motorB_speed(speed_motorB)
 #             forward()
+<<<<<<< HEAD
 #             sleep(0.5)
+=======
+            sleep(1)
+>>>>>>> 2676a25a97d6859571e2f2e7d0879efb3b0797a1
             driving = False
 
     client_socket.close()
@@ -104,7 +120,7 @@ if __name__ == '__main__':
     GPIO.setup(ENA, GPIO.OUT)
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.LOW)
-    Ap = GPIO.PWM(ENA, 1000)
+    Ap = GPIO.PWM(ENA, 500)
     Ap.start(initial_speed)
 
     # Inicialización del motor B (derecho)
@@ -113,7 +129,7 @@ if __name__ == '__main__':
     GPIO.setup(ENB, GPIO.OUT)
     GPIO.output(IN3, GPIO.LOW)
     GPIO.output(IN4, GPIO.LOW)
-    Bp = GPIO.PWM(ENB, 1000)
+    Bp = GPIO.PWM(ENB, 500)
     Bp.start(initial_speed)
 
     client_program()

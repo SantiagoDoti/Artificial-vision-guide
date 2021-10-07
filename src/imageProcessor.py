@@ -101,10 +101,6 @@ class ImageProcessor:
         # Raspberry Pi Camera (320 x 240)
         self.roi_points = np.float32([(0, height), (60, 120),  (260, 120), (320, 240)])
         self.desired_roi_points = np.array([[[60, 240], [60, 0], [260, 0], [260, 240]]], np.float32)
-        # self.roi_points = np.float32([
-        #     (0, height), (120, height / 3), (600, height / 3), (width, height)
-        # ])
-        # self.desired_roi_points = np.array([[186, 161], [57, 262], [583, 262], [454, 161]], np.float32)
 
         # Cámara de la PC (640 x 480)
         # self.roi_points = np.float32([(0, height), (120, 200), (520, 200), (width, height)])

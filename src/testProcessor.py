@@ -67,7 +67,7 @@ def process_common_camera_video():
         #     continue
 
         if allow_guide:
-            car_offset, frame_processed = imageProcessor.process_image(frame)
+            car_offset, left_curve, right_curve, frame_processed = imageProcessor.process_image(frame)
             if frame_processed is not None:
                 frame = frame_processed
             # if car_offset is not None:
