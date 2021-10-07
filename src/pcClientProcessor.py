@@ -54,11 +54,8 @@ class VideoStreaming(object):
                     if frame_processed is not None:
                         lane_image = frame_processed
                         server_program(car_offset)
-                        # self.send_info_back(car_offset, left_curve, right_curve)
-                        # motor_handler.guide_robot(car_offset)
                     else:
                         server_program(None)
-                        # self.send_info_back(0, 0, 0)
 
                     cv2.imshow("Imagen con curvatura y desplazamiento", lane_image)
 
