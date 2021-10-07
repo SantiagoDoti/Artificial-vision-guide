@@ -16,7 +16,7 @@ def create_socket():
 def capture_raspberry_video(raspberry_connection):
     try:
         with picamera.PiCamera() as raspberry_pi_camera:
-            raspberry_pi_camera.resolution = (320, 240)
+            raspberry_pi_camera.resolution = (640, 480)
             raspberry_pi_camera.framerate = 15
             time.sleep(2)
             start = time.time()

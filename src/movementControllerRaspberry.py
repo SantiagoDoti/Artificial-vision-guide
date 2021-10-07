@@ -20,24 +20,24 @@ def forward():
     GPIO.output(IN3, GPIO.HIGH)
     GPIO.output(IN4, GPIO.LOW)
 
-def to_left():
+def to_left(val):
     forward()
-    set_motorA_speed(30)
+    set_motorA_speed(val)
     set_motorB_speed(-1 * initial_speed)
 
-def to_right():
+def to_right(val):
     forward()
     set_motorA_speed(-1 * initial_speed)
-    set_motorB_speed(30)
+    set_motorB_speed(val)
     
-def to_straight():
-    set_motorA_speed(30)
-    set_motorB_speed(30)
+def to_straight(val):
     forward()
+    set_motorA_speed(val)
+    set_motorB_speed(val)
 
 def stop():
-    set_motorA_speed(-30)
-    set_motorB_speed(-30)
+    set_motorA_speed(-1 * initial_speed)
+    set_motorB_speed(-1 * initial_speed)
 
 def client_program():
     client_socket = socket.socket()
@@ -56,7 +56,6 @@ def client_program():
             robot_offset = None
 #             print("Valor fuera del rango, error al parsearlo")
 
-
         # left_curve = dat[1]
         # right_curve = dat[2]
 
@@ -68,20 +67,24 @@ def client_program():
             if robot_offset == 0:  # Detenerse
                 print("DETENERSE")
                 stop()
-            elif robot_offset > (- safety_zone_range) and robot_offset < safety_zone_range:
+#             elif 0.70 < robot_offset < -0.70:
+#                 print("ME DESVIE, NOSE QUE HACER")
+#                 stop()
+#                 break
+            elif (- safety_zone_range) < robot_offset < safety_zone_range:
                 print("DERECHO")
-                to_straight()
+                to_straight(60)
             elif robot_offset > safety_zone_range:  # Moverse a la izquierda
                 print("IZQUIERDA")
-                to_left()
+                to_left(60)
             elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
                 print("DERECHA")
-                to_right()
+                to_right(60)
 
 #             set_motorA_speed(speed_motorA)
 #             set_motorB_speed(speed_motorB)
 #             forward()
-            sleep(1)
+#             sleep(0.5)
             driving = False
 
     client_socket.close()
@@ -92,7 +95,7 @@ if __name__ == '__main__':
     # L298N pines <> GPIO pines
     ENA, IN1, IN2, ENB, IN3, IN4, = 12, 27, 22, 26, 23, 24
 
-    initial_speed = 60  # Velocidad inicial [0 - 100]
+    initial_speed = 30  # Velocidad inicial [0 - 100]
 
     # Inicialización del motor A (izquierdo)
     GPIO.setmode(GPIO.BCM)
@@ -101,7 +104,7 @@ if __name__ == '__main__':
     GPIO.setup(ENA, GPIO.OUT)
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.LOW)
-    Ap = GPIO.PWM(ENA, 500)
+    Ap = GPIO.PWM(ENA, 1000)
     Ap.start(initial_speed)
 
     # Inicialización del motor B (derecho)
@@ -110,7 +113,7 @@ if __name__ == '__main__':
     GPIO.setup(ENB, GPIO.OUT)
     GPIO.output(IN3, GPIO.LOW)
     GPIO.output(IN4, GPIO.LOW)
-    Bp = GPIO.PWM(ENB, 500)
+    Bp = GPIO.PWM(ENB, 1000)
     Bp.start(initial_speed)
 
     client_program()
