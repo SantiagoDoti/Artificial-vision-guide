@@ -49,6 +49,7 @@ def stop():
 
 
 def client_program():
+    global driving
     client_socket = socket.socket()
     client_socket.connect(('192.168.1.33', 5500))
 
@@ -94,6 +95,7 @@ def client_program():
         else:
             print("[None] DETENERSE")
             stop()
+            driving = False
 
     client_socket.close()
 
