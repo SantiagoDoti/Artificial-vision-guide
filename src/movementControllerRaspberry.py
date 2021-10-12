@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 
 # Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 5 cm a la derecha o a la izquierda
 safety_zone_range = 0.10
+driving = False
 
 
 def finish():
@@ -54,7 +55,6 @@ def client_program():
     client_socket.connect(('192.168.1.33', 5500))
 
     driving = False
-    speed_motorA, speed_motorB = 0, 0
 
     while True:
         data = client_socket.recv(1024).decode()
