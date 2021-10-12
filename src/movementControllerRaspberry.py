@@ -91,6 +91,9 @@ def client_program():
                 to_right(60)
             # sleep(0.5)
             driving = False
+        else:
+            print("[None] DETENERSE")
+            stop()
 
     client_socket.close()
 
