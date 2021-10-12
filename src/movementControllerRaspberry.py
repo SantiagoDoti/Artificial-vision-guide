@@ -2,9 +2,8 @@ import socket
 from time import sleep
 import RPi.GPIO as GPIO
 
-# Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 5 cm a la derecha o a la izquierda
+# Definimos un rango de seguridad, el robot debe permanecer como máximo desplazado 10 cm a la derecha o a la izquierda
 safety_zone_range = 0.10
-driving = False
 
 
 def finish():
@@ -58,13 +57,11 @@ def client_program():
 
     while True:
         data = client_socket.recv(1024).decode()
-
+        
         try:
             robot_offset = float(data)
-            print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm')
         except ValueError:
             robot_offset = None
-            # print("Valor fuera del rango, error al parsearlo")
 
         # left_curve = dat[1]
         # right_curve = dat[2]
@@ -72,30 +69,33 @@ def client_program():
         # print('Radio izquierdo: ' + '{:04.0f}'.format(left_curve) + ' m')
         # print('Radio derecho: ' + '{:04.0f}'.format(right_curve) + ' m')
 
+        direction = "DETENIDO"
         if robot_offset is not None and driving is False:
             driving = True
             if robot_offset == 0:  # Detenerse
-                print("DETENERSE")
+                direction = "DETENERSE"
                 stop()
             # elif 0.70 < robot_offset < -0.70:
             #     print("ME DESVIE, NOSE QUE HACER")
             #     stop()
             #     break
             elif (- safety_zone_range) < robot_offset < safety_zone_range:
-                print("DERECHO")
+                direction = "DERECHO"
                 to_straight(60)
             elif robot_offset > safety_zone_range:  # Moverse a la izquierda
-                print("IZQUIERDA")
+                direction = "IZQUIERDA"
                 to_left(60)
             elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
-                print("DERECHA")
+                direction = "DERECHA"
                 to_right(60)
-            # sleep(0.5)
+
             driving = False
-        else:
-            print("[None] DETENERSE")
+            print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm. Acción: ' +direction)
+        elif robot_offset is None:
+            print("[NoneType] Acción: DETENERSE")
             stop()
             driving = False
+#         sleep(0.5)
 
     client_socket.close()
 
