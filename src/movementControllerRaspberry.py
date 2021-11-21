@@ -81,13 +81,13 @@ def client_program():
             #     break
             elif (- safety_zone_range) < robot_offset < safety_zone_range:
                 direction = "DERECHO"
-                to_straight(60)
+                to_straight(45)
             elif robot_offset > safety_zone_range:  # Moverse a la izquierda
                 direction = "IZQUIERDA"
-                to_left(60)
+                to_left(45)
             elif robot_offset < (- safety_zone_range):  # Moverse a la derecha
                 direction = "DERECHA"
-                to_right(60)
+                to_right(45)
 
             driving = False
             print('Desplaz.: ' + '{:03.2f}'.format(abs(robot_offset)) + 'm. Acción: ' +direction)
